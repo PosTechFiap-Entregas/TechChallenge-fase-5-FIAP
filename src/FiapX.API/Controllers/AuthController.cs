@@ -45,7 +45,6 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register([FromBody] RegisterUserRequest request, CancellationToken cancellationToken)
     {
-        // Validação
         var validationResult = await _registerValidator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
@@ -53,7 +52,6 @@ public class AuthController : ControllerBase
             return BadRequest(new { Success = false, Errors = errors });
         }
 
-        // Executar use case
         var result = await _registerUseCase.ExecuteAsync(request, cancellationToken);
 
         if (result.IsFailure)
@@ -76,7 +74,6 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        // Validação
         var validationResult = await _loginValidator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
@@ -84,7 +81,6 @@ public class AuthController : ControllerBase
             return BadRequest(new { Success = false, Errors = errors });
         }
 
-        // Executar use case
         var result = await _loginUseCase.ExecuteAsync(request, cancellationToken);
 
         if (result.IsFailure)

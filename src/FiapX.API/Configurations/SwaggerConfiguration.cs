@@ -65,12 +65,6 @@ public static class SwaggerConfiguration
 
         app.UseSwaggerUI();
 
-        //app.UseSwaggerUI(options =>
-        //{
-        //    options.SwaggerEndpoint("/swagger/v1/swagger.json", "FiapX API v1");
-        //    options.RoutePrefix = "docs";
-        //});
-
         return app;
     }
 }

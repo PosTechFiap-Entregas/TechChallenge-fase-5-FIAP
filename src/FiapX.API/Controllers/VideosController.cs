@@ -60,7 +60,6 @@ public class VideosController : ControllerBase
             UserId = userId
         };
 
-        // Validação
         var validationResult = await _uploadValidator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
@@ -68,7 +67,6 @@ public class VideosController : ControllerBase
             return BadRequest(new { Success = false, Errors = errors });
         }
 
-        // Executar use case
         var result = await _uploadUseCase.ExecuteAsync(request, cancellationToken);
 
         if (result.IsFailure)

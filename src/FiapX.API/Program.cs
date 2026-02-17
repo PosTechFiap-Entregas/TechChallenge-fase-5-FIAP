@@ -26,12 +26,6 @@ var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 app.UseSerilogRequestLogging();
-
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwaggerConfiguration();
-//}
-
 app.UseSwaggerConfiguration();
 
 app.UseCors("CorsPolicy");

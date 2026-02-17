@@ -19,10 +19,8 @@ public class Video : BaseEntity
     public string? ErrorMessage { get; private set; }
     public TimeSpan? ProcessingDuration { get; private set; }
 
-    // Navigation Properties
     public virtual User User { get; private set; } = null!;
 
-    // EF Core Constructor
     private Video() 
     { 
         OriginalFileName = string.Empty;

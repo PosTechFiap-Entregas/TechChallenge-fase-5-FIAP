@@ -9,11 +9,9 @@ public class User : BaseEntity
     public string PasswordHash { get; private set; }
     public string Name { get; private set; }
     public bool IsActive { get; private set; }
-    
-    // Navigation Properties
+
     public virtual ICollection<Video> Videos { get; private set; }
 
-    // EF Core Constructor
     private User() 
     { 
         Email = string.Empty;
