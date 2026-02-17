@@ -10,6 +10,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Remove="Properties\launchSettings.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="Properties\launchSettings.json" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\FiapX.Application\FiapX.Application.csproj" />
 		<ProjectReference Include="..\FiapX.Infrastructure\FiapX.Infrastructure.csproj" />
 		<ProjectReference Include="..\FiapX.Shared\FiapX.Shared.csproj" />
