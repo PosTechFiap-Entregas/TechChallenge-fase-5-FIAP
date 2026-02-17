@@ -1,0 +1,112 @@
+services:
+  # ─── Infraestrutura ───────────────────────────────────────────────────────
+  
+  postgres:
+    image: postgres:16-alpine
+    container_name: fiapx-postgres
+    environment:
+      POSTGRES_DB: fiapx_db
+      POSTGRES_USER: fiapx_user
+      POSTGRES_PASSWORD: fiapx_pass_2024
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fiapx_user -d fiapx_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fiapx-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: fiapx-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fiapx-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: fiapx-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: fiapx
+      RABBITMQ_DEFAULT_PASS: fiapx_rabbit_2024
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fiapx-network
+
+  # ─── Aplicações ───────────────────────────────────────────────────────────
+
+  api:
+    build:
+      context: .
+      dockerfile: src/FiapX.API/Dockerfile
+    container_name: fiapx-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - shared_storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - fiapx-network
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: src/FiapX.Worker/Dockerfile
+    container_name: fiapx-worker
+    environment:
+      DOTNET_ENVIRONMENT: Production
+    volumes:
+      - shared_storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      api:
+        condition: service_started
+    networks:
+      - fiapx-network
+    restart: unless-stopped
+
+networks:
+  fiapx-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  shared_storage:

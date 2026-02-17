@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FiapX.API/FiapX.API.csproj" />
+    <Project Path="src/FiapX.Application/FiapX.Application.csproj" />
+    <Project Path="src/FiapX.Domain/FiapX.Domain.csproj" />
+    <Project Path="src/FiapX.Infrastructure/FiapX.Infrastructure.csproj" />
+    <Project Path="src/FiapX.Shared/FiapX.Shared.csproj" />
+    <Project Path="src/FiapX.Worker/FiapX.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FiapX.API.Tests/FiapX.API.Tests.csproj" />
+    <Project Path="tests/FiapX.Application.Tests/FiapX.Application.Tests.csproj" />
+    <Project Path="tests/FiapX.Infrastructure.Tests/FiapX.Infrastructure.Tests.csproj" />
+    <Project Path="tests/FiapX.Worker.Tests/FiapX.Worker.Tests.csproj" />
+  </Folder>
+</Solution>
