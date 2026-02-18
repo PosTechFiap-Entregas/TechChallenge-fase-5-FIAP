@@ -5,9 +5,9 @@ services:
     image: postgres:16-alpine
     container_name: fiapx-postgres
     environment:
-      POSTGRES_DB: fiapx_db
-      POSTGRES_USER: fiapx_user
-      POSTGRES_PASSWORD: fiapx_pass_2024
+      POSTGRES_DB: ${POSTGRES_DB:-fiapx_db}
+      POSTGRES_USER: ${POSTGRES_USER:-fiapx_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fiapx_pass_2024}
     ports:
       - "5433:5432"
     volumes:
@@ -39,8 +39,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: fiapx-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: fiapx
-      RABBITMQ_DEFAULT_PASS: fiapx_rabbit_2024
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-fiapx}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-fiapx_rabbit_2024}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -64,6 +64,10 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
+      # Telegram (lê do arquivo .env)
+      Telegram__Enabled: ${TELEGRAM_ENABLED:-false}
+      Telegram__BotToken: ${TELEGRAM_BOT_TOKEN:-}
+      Telegram__ChatId: ${TELEGRAM_CHAT_ID:-}
     ports:
       - "8080:8080"
     volumes:
@@ -86,6 +90,10 @@ services:
     container_name: fiapx-worker
     environment:
       DOTNET_ENVIRONMENT: Production
+      # Telegram (lê do arquivo .env)
+      Telegram__Enabled: ${TELEGRAM_ENABLED:-false}
+      Telegram__BotToken: ${TELEGRAM_BOT_TOKEN:-}
+      Telegram__ChatId: ${TELEGRAM_CHAT_ID:-}
     volumes:
       - shared_storage:/app/storage
     depends_on:
