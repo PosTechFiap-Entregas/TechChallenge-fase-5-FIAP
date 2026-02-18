@@ -146,6 +146,7 @@ public static class InfrastructureServiceExtensions
         services.AddSingleton<IStorageService, LocalStorageService>();
         services.AddScoped<IMessagePublisher, MassTransitMessagePublisher>();
         services.AddScoped<IVideoProcessingService, FFmpegVideoProcessingService>();
+        services.AddScoped<ITelegramNotificationService, TelegramNotificationService>();
         return services;
     }
 }

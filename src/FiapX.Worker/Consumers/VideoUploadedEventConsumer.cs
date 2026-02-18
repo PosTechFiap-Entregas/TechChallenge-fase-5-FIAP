@@ -15,6 +15,7 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
     private readonly IStorageService _storageService;
     private readonly IVideoProcessingService _videoProcessingService;
     private readonly IMessagePublisher _messagePublisher;
+    private readonly ITelegramNotificationService _telegramNotificationService;
     private readonly ILogger<VideoUploadedEventConsumer> _logger;
 
     public VideoUploadedEventConsumer(
@@ -22,12 +23,14 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
         IStorageService storageService,
         IVideoProcessingService videoProcessingService,
         IMessagePublisher messagePublisher,
+        ITelegramNotificationService telegramNotificationService,
         ILogger<VideoUploadedEventConsumer> logger)
     {
         _unitOfWork = unitOfWork;
         _storageService = storageService;
         _videoProcessingService = videoProcessingService;
         _messagePublisher = messagePublisher;
+        _telegramNotificationService = telegramNotificationService;
         _logger = logger;
     }
 
@@ -50,6 +53,10 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                 _logger.LogWarning("Vídeo {VideoId} não encontrado no banco de dados", message.VideoId);
                 return;
             }
+
+            // Buscar usuário no banco para pegar o nome
+            var user = await _unitOfWork.Users.GetByIdAsync(video.UserId, context.CancellationToken);
+            var userName = user?.Name ?? "Usuário desconhecido";
 
             // Marcar como processando
             video.StartProcessing();
@@ -92,6 +99,15 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     result.FrameCount,
                     result.ProcessingDuration.TotalSeconds);
 
+                // Notificar sucesso via Telegram (com nome do usuário)
+                await _telegramNotificationService.NotifyVideoProcessingSuccessAsync(
+                    video.Id,
+                    video.OriginalFileName,
+                    userName,
+                    result.FrameCount,
+                    result.ProcessingDuration,
+                    context.CancellationToken);
+
                 // Publicar evento de conclusão
                 await _messagePublisher.PublishAsync(new VideoProcessedEvent
                 {
@@ -114,6 +130,14 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     "Falha ao processar vídeo {VideoId}: {Error}",
                     message.VideoId,
                     result.ErrorMessage);
+
+                // Notificar erro via Telegram (com nome do usuário)
+                await _telegramNotificationService.NotifyVideoProcessingErrorAsync(
+                    video.Id,
+                    video.OriginalFileName,
+                    userName,
+                    result.ErrorMessage ?? "Erro desconhecido",
+                    context.CancellationToken);
 
                 // Publicar evento de falha
                 await _messagePublisher.PublishAsync(new VideoProcessedEvent
@@ -143,6 +167,18 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                 {
                     video.FailProcessing(ex.Message);
                     await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+
+                    // Buscar nome do usuário
+                    var user = await _unitOfWork.Users.GetByIdAsync(video.UserId, context.CancellationToken);
+                    var userName = user?.Name ?? "Usuário desconhecido";
+
+                    // Notificar erro crítico via Telegram (com nome do usuário)
+                    await _telegramNotificationService.NotifyVideoProcessingErrorAsync(
+                        video.Id,
+                        video.OriginalFileName,
+                        userName,
+                        ex.Message,
+                        context.CancellationToken);
                 }
             }
             catch (Exception innerEx)
