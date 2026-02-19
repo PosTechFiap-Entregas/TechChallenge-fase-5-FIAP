@@ -80,3 +80,7 @@ TestResults/
 *.mov
 *.mkv
 *.zip
+
+# User Secrets setup scripts
+setup-secrets*.ps1
+*secrets*.json
