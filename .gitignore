@@ -37,9 +37,27 @@ uploads/
 outputs/
 temp/
 
-# Environment variables
+# ═══════════════════════════════════════════════════════════════════════════
+# SEGURANÇA - CREDENCIAIS E DADOS SENSÍVEIS
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Environment variables (IMPORTANTE!)
 .env
-.env.local
+.env.*
+!.env.example
+
+# User Secrets setup scripts
+setup-secrets*.ps1
+*secrets*.json
+
+# Development appsettings (podem conter credenciais locais)
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# NÃO IGNORAR Production (mas devem usar variáveis de ambiente)
+# **/appsettings.Production.json
+
+# ═══════════════════════════════════════════════════════════════════════════
 
 # Docker volumes
 postgres_data/
@@ -74,13 +92,13 @@ TestResults/
 *.seed
 *.pid.lock
 
-# FFmpeg outputs
+# FFmpeg outputs (arquivos de teste)
 *.mp4
 *.avi
 *.mov
 *.mkv
 *.zip
 
-# User Secrets setup scripts
-setup-secrets*.ps1
-*secrets*.json
+# Backup files
+*.bak
+*.backup

@@ -5,15 +5,15 @@ services:
     image: postgres:16-alpine
     container_name: fiapx-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-fiapx_db}
-      POSTGRES_USER: ${POSTGRES_USER:-fiapx_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fiapx_pass_2024}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fiapx_user -d fiapx_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,8 +39,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: fiapx-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-fiapx}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-fiapx_rabbit_2024}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -64,10 +64,23 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      # Telegram (lê do arquivo .env)
-      Telegram__Enabled: ${TELEGRAM_ENABLED:-false}
-      Telegram__BotToken: ${TELEGRAM_BOT_TOKEN:-}
-      Telegram__ChatId: ${TELEGRAM_CHAT_ID:-}
+      # ConnectionStrings
+      ConnectionStrings__DefaultConnection: ${POSTGRES_CONNECTION_STRING}
+      ConnectionStrings__Redis: ${REDIS_CONNECTION_STRING}
+      # JWT
+      JWT__Secret: ${JWT_SECRET}
+      # Telegram
+      Telegram__Enabled: ${TELEGRAM_ENABLED}
+      Telegram__BotToken: ${TELEGRAM_BOT_TOKEN}
+      Telegram__ChatId: ${TELEGRAM_CHAT_ID}
+      # RabbitMQ
+      RabbitMQ__Host: ${RABBITMQ_HOST}
+      RabbitMQ__Username: ${RABBITMQ_USERNAME}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      # HealthChecks
+      HealthChecks__PostgreSQL: ${POSTGRES_CONNECTION_STRING}
+      HealthChecks__Redis: ${REDIS_CONNECTION_STRING}
+      HealthChecks__RabbitMQ: ${RABBITMQ_CONNECTION_STRING}
     ports:
       - "8080:8080"
     volumes:
@@ -90,10 +103,17 @@ services:
     container_name: fiapx-worker
     environment:
       DOTNET_ENVIRONMENT: Production
-      # Telegram (lê do arquivo .env)
-      Telegram__Enabled: ${TELEGRAM_ENABLED:-false}
-      Telegram__BotToken: ${TELEGRAM_BOT_TOKEN:-}
-      Telegram__ChatId: ${TELEGRAM_CHAT_ID:-}
+      # ConnectionStrings
+      ConnectionStrings__DefaultConnection: ${POSTGRES_CONNECTION_STRING}
+      ConnectionStrings__Redis: ${REDIS_CONNECTION_STRING}
+      # Telegram
+      Telegram__Enabled: ${TELEGRAM_ENABLED}
+      Telegram__BotToken: ${TELEGRAM_BOT_TOKEN}
+      Telegram__ChatId: ${TELEGRAM_CHAT_ID}
+      # RabbitMQ
+      RabbitMQ__Host: ${RABBITMQ_HOST}
+      RabbitMQ__Username: ${RABBITMQ_USERNAME}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
     volumes:
       - shared_storage:/app/storage
     depends_on:

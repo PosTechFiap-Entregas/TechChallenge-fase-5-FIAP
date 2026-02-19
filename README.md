@@ -1,233 +1,298 @@
-# 🎬 FIAP X - Sistema de Processamento de Vídeos
+# 🎓 TechChallenge Fase 5 - FIAP
 
-**TechChallenge - Fase 5 - Pós-Graduação Arquitetura de Software**
+Sistema de processamento de vídeos com extração de frames utilizando arquitetura distribuída e escalável.
 
-Sistema escalável e robusto para processamento de vídeos, convertendo-os em frames (imagens) e disponibilizando em arquivos ZIP para download.
+[![CI/CD Pipeline](https://github.com/wesleygyn/TechChallenge-fase-5-FIAP/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/wesleygyn/TechChallenge-fase-5-FIAP/actions)
+
+---
+
+## 📋 Sobre o Projeto
+
+Sistema que permite upload de múltiplos vídeos simultaneamente, processamento assíncrono via worker com RabbitMQ, extração de frames (1 fps) usando FFmpeg, e download do resultado em arquivo ZIP.
+
+### 🎯 Objetivos Técnicos
+
+- ✅ Processar múltiplos vídeos simultaneamente
+- ✅ Não perder requisições (filas + persistência)
+- ✅ Autenticação JWT
+- ✅ Listagem de vídeos por usuário
+- ✅ Notificações (Telegram)
+- ✅ Arquitetura escalável
+- ✅ Docker Compose completo
+- ✅ CI/CD automatizado
+- ✅ Testes unitários
 
 ---
 
 ## 🏗️ Arquitetura
 
-Sistema baseado em **Clean Architecture** com as seguintes camadas:
-
-- **FiapX.API**: API REST (ASP.NET Core 8)
-- **FiapX.Worker**: Processador de vídeos (Background Service)
-- **FiapX.Application**: Casos de uso e lógica de negócio
-- **FiapX.Domain**: Entidades e interfaces do domínio
-- **FiapX.Infrastructure**: Persistência, mensageria e serviços externos
-- **FiapX.Shared**: Utilitários compartilhados
-
-### Diagrama de Arquitetura
+### Clean Architecture + DDD
 
 ```
-┌─────────────┐      ┌──────────────┐      ┌─────────────┐
-│   Cliente   │─────▶│   API REST   │─────▶│  RabbitMQ   │
-│  (Upload)   │      │  (ASP.NET 8) │      │ (Mensageria)│
-└─────────────┘      └──────────────┘      └─────────────┘
-                            │                      │
-                            ▼                      ▼
-                     ┌──────────────┐      ┌─────────────┐
-                     │  PostgreSQL  │      │   Worker    │
-                     │ (Metadados)  │◀─────│  (FFmpeg)   │
-                     └──────────────┘      └─────────────┘
-                            │                      │
-                            ▼                      ▼
-                     ┌──────────────┐      ┌─────────────┐
-                     │    Redis     │      │  Storage    │
-                     │   (Cache)    │      │  (Arquivos) │
-                     └──────────────┘      └─────────────┘
+src/
+├── FiapX.API/              # Apresentação (REST API)
+├── FiapX.Application/      # Casos de Uso + Events
+├── FiapX.Domain/           # Entidades + Regras de Negócio
+├── FiapX.Infrastructure/   # Persistência + Serviços Externos
+├── FiapX.Shared/           # DTOs + Responses
+└── FiapX.Worker/           # Background Processing
+```
+
+### 🔄 Fluxo de Processamento
+
+```
+Cliente → API → RabbitMQ → Worker → FFmpeg → Storage → Cliente
+          ↓                   ↓
+       PostgreSQL          Telegram
 ```
 
 ---
 
-## 🚀 Tecnologias
+## 🚀 Stack Tecnológica
 
-| Categoria | Tecnologia |
-|-----------|------------|
-| **Framework** | .NET 8 (LTS) |
-| **API** | ASP.NET Core Web API |
-| **ORM** | Entity Framework Core 8 |
-| **Database** | PostgreSQL 16 |
+| Camada | Tecnologia |
+|--------|------------|
+| **Framework** | .NET 8 + ASP.NET Core |
+| **Banco de Dados** | PostgreSQL 16 + EF Core |
 | **Cache** | Redis 7 |
-| **Mensageria** | RabbitMQ 3.13 + MassTransit |
-| **Processamento** | FFMpegCore |
-| **Logs** | Serilog + Seq |
-| **Docs** | Swagger/Scalar |
+| **Mensageria** | RabbitMQ 3 + MassTransit |
+| **Processamento** | FFmpeg |
+| **Autenticação** | JWT |
+| **Logging** | Serilog + Seq |
 | **Notificações** | Telegram Bot API |
-| **Containers** | Docker + Docker Compose |
-| **Testes** | xUnit + FluentAssertions + Moq |
+| **Containerização** | Docker + Docker Compose |
+| **CI/CD** | GitHub Actions |
+| **Testes** | xUnit + Moq |
 
 ---
 
-## 📋 Requisitos Funcionais
+## 📦 Como Executar
 
-✅ Processar múltiplos vídeos simultaneamente  
-✅ Não perder requisições em picos de carga  
-✅ Sistema protegido por autenticação JWT  
-✅ Listagem de status dos vídeos por usuário  
-✅ Notificação em caso de erro (Telegram - opcional)  
-✅ Persistência de dados  
-✅ Arquitetura escalável  
-✅ CI/CD com GitHub Actions  
-✅ Testes automatizados  
-
----
-
-## 🛠️ Instalação e Execução
-
-### Pré-requisitos
-
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Docker](https://www.docker.com/get-started) e Docker Compose
-- [Git](https://git-scm.com/)
-
-### Passos
-
-1. **Clone o repositório**
+### 🐳 Opção 1: Docker (Recomendado)
 
 ```bash
-git clone https://github.com/seu-usuario/TechChallenge-Fase5.git
-cd TechChallenge-Fase5
-```
+# 1. Clonar repositório
+git clone https://github.com/wesleygyn/TechChallenge-fase-5-FIAP.git
+cd TechChallenge-fase-5-FIAP
 
-2. **Configure as variáveis de ambiente**
-
-```bash
+# 2. Configurar variáveis de ambiente
 cp .env.example .env
-# Edite o arquivo .env conforme necessário
+# Editar .env com suas credenciais
+
+# 3. Subir containers
+docker-compose up --build -d
+
+# 4. Acessar
+# API: http://localhost:8080
+# Swagger: http://localhost:8080/swagger
+# RabbitMQ: http://localhost:15672
 ```
 
-3. **Inicie a infraestrutura com Docker Compose**
-
-```bash
-docker-compose up -d
-```
-
-4. **Execute as migrations**
-
-```bash
-cd src/FiapX.API
-dotnet ef database update
-```
-
-5. **Acesse a aplicação**
-
-- **API**: http://localhost:8080
-- **Swagger**: http://localhost:8080/swagger
-- **RabbitMQ Management**: http://localhost:15672 (user: fiapx, pass: fiapx_rabbit_2024)
-- **Seq (Logs)**: http://localhost:8081
+📖 **[Guia completo do Docker →](./README-DOCKER.md)**
 
 ---
 
-## 📖 Documentação
+### 💻 Opção 2: Visual Studio (Desenvolvimento)
 
-Consulte a pasta `docs/` para documentação detalhada:
+```bash
+# 1. Configurar User Secrets
+cd src/FiapX.API
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5433;Database=fiapx_db;Username=user;Password=pass"
+# ... (configurar demais secrets)
 
-- [Arquitetura do Sistema](docs/architecture.md)
-- [Guia de Desenvolvimento](docs/development-guide.md)
-- [Scripts de Banco de Dados](docs/database-scripts.sql)
+cd ../FiapX.Worker
+dotnet user-secrets init
+# ... (repetir configurações)
+
+# 2. Subir apenas a infraestrutura no Docker
+docker-compose up postgres redis rabbitmq -d
+
+# 3. Rodar API e Worker no Visual Studio (F5)
+```
+
+📖 **[Guia de User Secrets →](./docs/USER-SECRETS.md)**
+
+---
+
+## 🔐 Segurança
+
+### Desenvolvimento Local
+- ✅ User Secrets (.NET) - credenciais fora do código
+- ✅ `.env` no `.gitignore`
+- ✅ Nenhuma credencial hardcoded
+
+### Docker / Produção
+- ✅ Variáveis de ambiente via arquivo `.env`
+- ✅ `.env.example` como template (sem credenciais)
+- ✅ Secrets gerenciados via Docker Compose
+
+### CI/CD
+- ✅ GitHub Secrets para credenciais
+- ✅ Build automatizado
+- ✅ Testes antes do deploy
+
+**⚠️ Conformidade LGPD:** Todas as credenciais e dados sensíveis são gerenciados de forma segura, seguindo as melhores práticas da indústria.
 
 ---
 
 ## 🧪 Testes
 
 ```bash
-# Executar todos os testes
+# Rodar todos os testes
 dotnet test
 
-# Executar testes com cobertura
+# Com cobertura
 dotnet test /p:CollectCoverage=true
 ```
 
----
-
-## 📦 Build e Deploy
-
-### Build Local
-
-```bash
-dotnet build TechChallenge-Fase5.sln --configuration Release
-```
-
-### Build Docker
-
-```bash
-# API
-docker build -f docker/Dockerfile.api -t fiapx-api:latest .
-
-# Worker
-docker build -f docker/Dockerfile.worker -t fiapx-worker:latest .
-```
+Estrutura de testes:
+- ✅ **Unit Tests**: UseCases, Services, Domain
+- ✅ **Integration Tests**: API Endpoints, Database
+- ✅ **Consumer Tests**: Event Handlers
 
 ---
 
-## 🔐 Autenticação
-
-O sistema utiliza JWT (JSON Web Tokens). Para obter um token:
-
-**POST** `/api/auth/login`
-
-```json
-{
-  "email": "user@example.com",
-  "password": "senha123"
-}
-```
-
-**Response:**
-
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "expiresAt": "2024-01-30T23:00:00Z"
-}
-```
-
-Use o token no header: `Authorization: Bearer {token}`
-
----
-
-## 📊 Endpoints Principais
+## 📡 API Endpoints
 
 ### Autenticação
-- `POST /api/auth/register` - Registrar usuário
-- `POST /api/auth/login` - Fazer login
+```http
+POST /api/auth/register
+POST /api/auth/login
+```
 
 ### Vídeos
-- `POST /api/videos/upload` - Upload de vídeo
-- `GET /api/videos` - Listar vídeos do usuário
-- `GET /api/videos/{id}` - Detalhes do vídeo
-- `GET /api/videos/{id}/status` - Status do processamento
-- `GET /api/videos/{id}/download` - Download do ZIP
+```http
+POST   /api/videos/upload          # Upload de vídeo
+GET    /api/videos                 # Listar meus vídeos
+GET    /api/videos/{id}/status     # Status do processamento
+GET    /api/videos/{id}/download   # Download do ZIP
+```
 
 ### Health Check
-- `GET /health` - Status da aplicação
+```http
+GET /health
+```
+
+📖 **Documentação completa:** `/swagger` quando a API estiver rodando
 
 ---
 
-## 👥 Equipe
+## 🔄 CI/CD Pipeline
 
-- **Seu Nome** - Desenvolvedor
+Pipeline automatizado com GitHub Actions:
+
+1. **Build & Test** - Compila e testa o código
+2. **Docker Build** - Valida Dockerfiles
+3. **Code Quality** - Análise estática
+
+📖 **[Detalhes do CI/CD →](./README-CI-CD.md)**
 
 ---
 
-## 📄 Licença
+## 📂 Estrutura do Projeto
 
-Este projeto foi desenvolvido como trabalho acadêmico para a FIAP.
+```
+TechChallenge-fase-5-FIAP/
+├── .github/
+│   └── workflows/           # GitHub Actions
+├── docker/                  # (deprecated - usar src/*/Dockerfile)
+├── docs/
+│   ├── architecture.md      # Arquitetura detalhada
+│   └── database-scripts.sql # Scripts SQL
+├── src/
+│   ├── FiapX.API/          # API REST
+│   ├── FiapX.Application/  # Use Cases
+│   ├── FiapX.Domain/       # Entidades
+│   ├── FiapX.Infrastructure/ # Infraestrutura
+│   ├── FiapX.Shared/       # DTOs
+│   └── FiapX.Worker/       # Background Worker
+├── tests/
+│   ├── FiapX.API.Tests/
+│   ├── FiapX.Application.Tests/
+│   ├── FiapX.Infrastructure.Tests/
+│   └── FiapX.Worker.Tests/
+├── .env.example            # Template de configuração
+├── docker-compose.yml      # Orquestração de containers
+└── README.md              # Este arquivo
+```
+
+---
+
+## 🛠️ Configuração Avançada
+
+### Telegram Bot (Opcional)
+
+1. Criar bot com [@BotFather](https://t.me/BotFather)
+2. Obter token e chat ID
+3. Configurar no `.env`:
+```env
+TELEGRAM_ENABLED=true
+TELEGRAM_BOT_TOKEN=seu-token
+TELEGRAM_CHAT_ID=seu-chat-id
+```
+
+### Seq Logging (Opcional)
+
+Descomentar o serviço `seq` no `docker-compose.yml` para habilitar dashboard de logs.
+
+---
+
+## 📊 Monitoramento
+
+- **Health Checks**: `/health` (API)
+- **RabbitMQ Management**: `http://localhost:15672`
+- **Seq Logs**: `http://localhost:5341` (se habilitado)
+
+---
+
+## 🤝 Contribuindo
+
+Este é um projeto acadêmico da FIAP. Para sugestões:
+
+1. Fork o projeto
+2. Crie uma branch (`git checkout -b feature/MinhaFeature`)
+3. Commit (`git commit -m 'Add: MinhaFeature'`)
+4. Push (`git push origin feature/MinhaFeature`)
+5. Abra um Pull Request
+
+---
+
+## 📝 Licença
+
+Projeto acadêmico - FIAP Pós-Graduação em Arquitetura de Software
+
+---
+
+## 👥 Autores
+
+- **Wesley Silva** - [GitHub](https://github.com/wesleygyn)
+
+**Orientação:** FIAP - Fase 5 - Arquitetura de Soluções
+
+---
+
+## 📚 Documentação Adicional
+
+- [Arquitetura Detalhada](./docs/architecture.md)
+- [Configuração Docker](./README-DOCKER.md)
+- [CI/CD Pipeline](./README-CI-CD.md)
+- [Scripts de Banco de Dados](./docs/database-scripts.sql)
 
 ---
 
 ## 🎯 Roadmap
 
-- [x] Estrutura do projeto
-- [x] Configuração Docker
-- [ ] Implementação de autenticação
-- [ ] Implementação de upload
-- [ ] Integração com FFmpeg
-- [ ] Sistema de notificações
-- [ ] Testes automatizados
-- [ ] CI/CD
-- [ ] Documentação completa
+- [x] Autenticação JWT
+- [x] Upload de vídeos
+- [x] Processamento assíncrono
+- [x] Notificações Telegram
+- [x] Docker Compose
+- [x] CI/CD Pipeline
+- [x] User Secrets
+- [ ] Testes completos (90%+ cobertura)
+- [ ] Deploy em cloud (Azure/AWS)
+- [ ] Monitoramento com Application Insights
 
 ---
 
