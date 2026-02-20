@@ -1,4 +1,6 @@
 ﻿using FiapX.Application.Events;
+using FiapX.Domain.Entities;
+using FiapX.Domain.Enums;
 using FiapX.Domain.Interfaces;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -8,6 +10,7 @@ namespace FiapX.Worker.Consumers;
 /// <summary>
 /// Consumer que processa vídeos quando eles são enviados.
 /// Consome VideoUploadedEvent da fila RabbitMQ.
+/// Implementa idempotência, timeout e logging detalhado.
 /// </summary>
 public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
 {
@@ -37,55 +40,139 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
     public async Task Consume(ConsumeContext<VideoUploadedEvent> context)
     {
         var message = context.Message;
+        var messageId = context.MessageId?.ToString() ?? Guid.NewGuid().ToString();
 
         _logger.LogInformation(
-            "Processando vídeo {VideoId} do usuário {UserId}",
+            "[{MessageId}] 🎬 Processando vídeo {VideoId} do usuário {UserId}",
+            messageId,
             message.VideoId,
             message.UserId);
 
         try
         {
-            // Buscar vídeo no banco
+            // ═══════════════════════════════════════════════════════════════════
+            // ETAPA 1: BUSCAR VÍDEO E VERIFICAR IDEMPOTÊNCIA
+            // ═══════════════════════════════════════════════════════════════════
             var video = await _unitOfWork.Videos.GetByIdAsync(message.VideoId, context.CancellationToken);
 
             if (video is null)
             {
-                _logger.LogWarning("Vídeo {VideoId} não encontrado no banco de dados", message.VideoId);
-                return;
+                _logger.LogWarning(
+                    "[{MessageId}] ⚠️ Vídeo {VideoId} não encontrado no banco de dados",
+                    messageId,
+                    message.VideoId);
+                return; // Ack da mensagem (não vai reprocessar)
             }
 
-            // Buscar usuário no banco para pegar o nome
+            // IDEMPOTÊNCIA: Verificar se já foi processado com sucesso
+            if (video.Status == VideoStatus.Completed)
+            {
+                _logger.LogInformation(
+                    "[{MessageId}] ✅ Vídeo {VideoId} já foi processado com sucesso. Ignorando mensagem duplicada.",
+                    messageId,
+                    message.VideoId);
+                return; // Ack (idempotente - não reprocessa)
+            }
+
+            // IDEMPOTÊNCIA: Verificar se já está sendo processado por outro worker
+            if (video.Status == VideoStatus.Processing)
+            {
+                _logger.LogWarning(
+                    "[{MessageId}] ⚙️ Vídeo {VideoId} já está sendo processado por outro worker. Ignorando.",
+                    messageId,
+                    message.VideoId);
+                return; // Ack (idempotente - evita duplicação)
+            }
+
+            // ═══════════════════════════════════════════════════════════════════
+            // ETAPA 2: BUSCAR USUÁRIO
+            // ═══════════════════════════════════════════════════════════════════
             var user = await _unitOfWork.Users.GetByIdAsync(video.UserId, context.CancellationToken);
             var userName = user?.Name ?? "Usuário desconhecido";
 
-            // Marcar como processando
+            // ═══════════════════════════════════════════════════════════════════
+            // ETAPA 3: LOCK OTIMISTA - Marcar como processando ANTES de processar
+            // ═══════════════════════════════════════════════════════════════════
             video.StartProcessing();
             await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
-            _logger.LogInformation("Vídeo {VideoId} marcado como processando", message.VideoId);
+            _logger.LogInformation(
+                "[{MessageId}] 🔄 Vídeo {VideoId} marcado como processando",
+                messageId,
+                message.VideoId);
 
-            // Obter diretório temporário para processamento
+            // ═══════════════════════════════════════════════════════════════════
+            // ETAPA 4: PREPARAR DIRETÓRIO TEMPORÁRIO
+            // ═══════════════════════════════════════════════════════════════════
             var tempDirectory = _storageService.GetTempDirectory();
             var videoOutputDirectory = Path.Combine(tempDirectory, message.VideoId.ToString());
             Directory.CreateDirectory(videoOutputDirectory);
 
-            // Processar vídeo (extrair frames e criar ZIP)
-            var result = await _videoProcessingService.ProcessVideoAsync(
-                message.StoragePath,
-                videoOutputDirectory,
-                fps: 1, // 1 frame por segundo
-                context.CancellationToken);
+            _logger.LogDebug(
+                "[{MessageId}] 📁 Diretório temporário criado: {Directory}",
+                messageId,
+                videoOutputDirectory);
 
+            // ═══════════════════════════════════════════════════════════════════
+            // ETAPA 5: PROCESSAR VÍDEO COM TIMEOUT DE 10 MINUTOS
+            // ═══════════════════════════════════════════════════════════════════
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken);
+            cts.CancelAfter(TimeSpan.FromMinutes(10)); // Timeout de 10 minutos
+
+            VideoProcessingResult result;
+            try
+            {
+                _logger.LogInformation(
+                    "[{MessageId}] ⚙️ Iniciando processamento do vídeo {VideoId}...",
+                    messageId,
+                    message.VideoId);
+
+                result = await _videoProcessingService.ProcessVideoAsync(
+                    message.StoragePath,
+                    videoOutputDirectory,
+                    fps: 1,
+                    cts.Token);
+            }
+            catch (OperationCanceledException) when (cts.IsCancellationRequested && !context.CancellationToken.IsCancellationRequested)
+            {
+                // Timeout de 10 minutos foi atingido
+                _logger.LogError(
+                    "[{MessageId}] ⏱️ Timeout no processamento do vídeo {VideoId} (>10 minutos)",
+                    messageId,
+                    message.VideoId);
+
+                video.FailProcessing("Timeout: processamento excedeu 10 minutos");
+                await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+
+                await _telegramNotificationService.NotifyVideoProcessingErrorAsync(
+                    video.Id,
+                    video.OriginalFileName,
+                    userName,
+                    "Timeout: processamento excedeu 10 minutos",
+                    context.CancellationToken);
+
+                throw; // Re-throw para que MassTransit faça retry
+            }
+
+            // ═══════════════════════════════════════════════════════════════════
+            // ETAPA 6: PROCESSAR RESULTADO
+            // ═══════════════════════════════════════════════════════════════════
             if (result.Success)
             {
-                // Salvar ZIP no storage permanente
+                // ───────────────────────────────────────────────────────────────
+                // SUCESSO: Salvar ZIP e atualizar status
+                // ───────────────────────────────────────────────────────────────
+                _logger.LogInformation(
+                    "[{MessageId}] 💾 Salvando ZIP do vídeo {VideoId}...",
+                    messageId,
+                    message.VideoId);
+
                 var zipFileName = Path.GetFileName(result.ZipPath!);
                 var zipStoragePath = await SaveZipToStorageAsync(
                     result.ZipPath!,
                     zipFileName,
                     context.CancellationToken);
 
-                // Marcar como concluído
                 video.CompleteProcessing(
                     zipPath: zipStoragePath,
                     frameCount: result.FrameCount,
@@ -94,12 +181,13 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                 await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
                 _logger.LogInformation(
-                    "Vídeo {VideoId} processado com sucesso: {FrameCount} frames em {Duration}s",
+                    "[{MessageId}] ✅ Vídeo {VideoId} processado com sucesso: {FrameCount} frames em {Duration:F2}s",
+                    messageId,
                     message.VideoId,
                     result.FrameCount,
                     result.ProcessingDuration.TotalSeconds);
 
-                // Notificar sucesso via Telegram (com nome do usuário)
+                // Notificar sucesso via Telegram
                 await _telegramNotificationService.NotifyVideoProcessingSuccessAsync(
                     video.Id,
                     video.OriginalFileName,
@@ -122,16 +210,18 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
             }
             else
             {
-                // Marcar como falha
+                // ───────────────────────────────────────────────────────────────
+                // FALHA: Marcar como falha e notificar
+                // ───────────────────────────────────────────────────────────────
                 video.FailProcessing(result.ErrorMessage ?? "Erro desconhecido");
                 await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
                 _logger.LogError(
-                    "Falha ao processar vídeo {VideoId}: {Error}",
+                    "[{MessageId}] ❌ Falha ao processar vídeo {VideoId}: {Error}",
+                    messageId,
                     message.VideoId,
                     result.ErrorMessage);
 
-                // Notificar erro via Telegram (com nome do usuário)
                 await _telegramNotificationService.NotifyVideoProcessingErrorAsync(
                     video.Id,
                     video.OriginalFileName,
@@ -151,28 +241,46 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                 }, context.CancellationToken);
             }
 
-            // Limpar diretório temporário
+            // ═══════════════════════════════════════════════════════════════════
+            // ETAPA 7: LIMPAR DIRETÓRIO TEMPORÁRIO
+            // ═══════════════════════════════════════════════════════════════════
             if (Directory.Exists(videoOutputDirectory))
+            {
                 Directory.Delete(videoOutputDirectory, recursive: true);
+                _logger.LogDebug(
+                    "[{MessageId}] 🧹 Diretório temporário removido: {Directory}",
+                    messageId,
+                    videoOutputDirectory);
+            }
+
+            _logger.LogInformation(
+                "[{MessageId}] 🎉 Processamento do vídeo {VideoId} finalizado",
+                messageId,
+                message.VideoId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro crítico ao processar vídeo {VideoId}", message.VideoId);
+            // ═══════════════════════════════════════════════════════════════════
+            // TRATAMENTO DE ERRO CRÍTICO
+            // ═══════════════════════════════════════════════════════════════════
+            _logger.LogError(
+                ex,
+                "[{MessageId}] 💥 Erro crítico ao processar vídeo {VideoId}",
+                messageId,
+                message.VideoId);
 
             // Tentar marcar como falha no banco
             try
             {
                 var video = await _unitOfWork.Videos.GetByIdAsync(message.VideoId, context.CancellationToken);
-                if (video is not null)
+                if (video is not null && video.Status != VideoStatus.Completed)
                 {
                     video.FailProcessing(ex.Message);
                     await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
-                    // Buscar nome do usuário
                     var user = await _unitOfWork.Users.GetByIdAsync(video.UserId, context.CancellationToken);
                     var userName = user?.Name ?? "Usuário desconhecido";
 
-                    // Notificar erro crítico via Telegram (com nome do usuário)
                     await _telegramNotificationService.NotifyVideoProcessingErrorAsync(
                         video.Id,
                         video.OriginalFileName,
@@ -183,10 +291,15 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
             }
             catch (Exception innerEx)
             {
-                _logger.LogError(innerEx, "Erro ao marcar vídeo {VideoId} como falha", message.VideoId);
+                _logger.LogError(
+                    innerEx,
+                    "[{MessageId}] 💥 Erro ao marcar vídeo {VideoId} como falha",
+                    messageId,
+                    message.VideoId);
             }
 
-            throw; // Re-throw para que MassTransit faça retry
+            // Re-throw para que MassTransit faça retry → DLQ após 3 falhas
+            throw;
         }
     }
 
