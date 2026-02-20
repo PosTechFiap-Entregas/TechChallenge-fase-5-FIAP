@@ -17,26 +17,40 @@ Sistema que permite upload de múltiplos vídeos simultaneamente, processamento 
 - ✅ Autenticação JWT
 - ✅ Listagem de vídeos por usuário
 - ✅ Notificações (Telegram)
-- ✅ Arquitetura escalável
+- ✅ Arquitetura escalável e resiliente
 - ✅ Docker Compose completo
 - ✅ CI/CD automatizado
 - ✅ Testes unitários
+- ✅ Observabilidade
 
 ---
 
 ## 🏗️ Arquitetura
 
-### Clean Architecture + DDD
+### Visão Geral
+
+O sistema FiapX segue os princípios de **Clean Architecture** e **Domain-Driven Design (DDD)**, com separação clara de responsabilidades em camadas.
 
 ```
 src/
-├── FiapX.API/              # Apresentação (REST API)
-├── FiapX.Application/      # Casos de Uso + Events
-├── FiapX.Domain/           # Entidades + Regras de Negócio
-├── FiapX.Infrastructure/   # Persistência + Serviços Externos
-├── FiapX.Shared/           # DTOs + Responses
-└── FiapX.Worker/           # Background Processing
+├── FiapX.API/              # 🌐 Apresentação (REST API)
+├── FiapX.Application/      # 💼 Aplicação (Use Cases)
+├── FiapX.Domain/           # 🎯 Domínio (Entidades + Regras)
+├── FiapX.Infrastructure/   # 🔧 Infraestrutura (BD, Filas, Storage)
+├── FiapX.Shared/           # 📦 Compartilhado (DTOs, Responses)
+└── FiapX.Worker/           # ⚙️ Background Processing
 ```
+
+### 📊 Diagramas C4
+
+Documentação visual completa da arquitetura seguindo o modelo C4:
+
+| Nível | Descrição | Link |
+|-------|-----------|------|
+| **Nível 1** | Contexto do Sistema | **[Ver Diagrama →](./docs/diagrams/c4-level1-context.md)** |
+| **Nível 2** | Containers (API, Worker, DBs) | **[Ver Diagrama →](./docs/diagrams/c4-level2-containers.md)** |
+| **Nível 3** | Componentes da API | **[Ver Diagrama →](./docs/diagrams/c4-level3-components.md)** |
+| **Sequência** | Fluxo de Processamento | **[Ver Diagrama →](./docs/diagrams/sequence-video-processing.md)** |
 
 ### 🔄 Fluxo de Processamento
 
@@ -45,6 +59,8 @@ Cliente → API → RabbitMQ → Worker → FFmpeg → Storage → Cliente
           ↓                   ↓
        PostgreSQL          Telegram
 ```
+
+📖 **[Documentação completa da arquitetura →](./docs/architecture.md)**
 
 ---
 
@@ -59,10 +75,11 @@ Cliente → API → RabbitMQ → Worker → FFmpeg → Storage → Cliente
 | **Processamento** | FFmpeg |
 | **Autenticação** | JWT |
 | **Logging** | Serilog + Seq |
+| **Métricas** | Prometheus + Grafana |
 | **Notificações** | Telegram Bot API |
 | **Containerização** | Docker + Docker Compose |
 | **CI/CD** | GitHub Actions |
-| **Testes** | xUnit + Moq |
+| **Testes** | xUnit + Moq + FluentAssertions |
 
 ---
 
@@ -86,6 +103,8 @@ docker-compose up --build -d
 # API: http://localhost:8080
 # Swagger: http://localhost:8080/swagger
 # RabbitMQ: http://localhost:15672
+# Prometheus: http://localhost:9090
+# Grafana: http://localhost:3000
 ```
 
 📖 **[Guia completo do Docker →](./README-DOCKER.md)**
@@ -98,12 +117,8 @@ docker-compose up --build -d
 # 1. Configurar User Secrets
 cd src/FiapX.API
 dotnet user-secrets init
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5433;Database=fiapx_db;Username=user;Password=pass"
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5433;..."
 # ... (configurar demais secrets)
-
-cd ../FiapX.Worker
-dotnet user-secrets init
-# ... (repetir configurações)
 
 # 2. Subir apenas a infraestrutura no Docker
 docker-compose up postgres redis rabbitmq -d
@@ -144,12 +159,17 @@ dotnet test
 
 # Com cobertura
 dotnet test /p:CollectCoverage=true
+
+# Relatório de cobertura
+dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
 ```
+
+**Cobertura:** > 70%
 
 Estrutura de testes:
 - ✅ **Unit Tests**: UseCases, Services, Domain
-- ✅ **Integration Tests**: API Endpoints, Database
-- ✅ **Consumer Tests**: Event Handlers
+- ✅ **Integration Tests**: Consumer, Repositories
+- ✅ **Mocks**: Moq + FluentAssertions
 
 ---
 
@@ -169,9 +189,10 @@ GET    /api/videos/{id}/status     # Status do processamento
 GET    /api/videos/{id}/download   # Download do ZIP
 ```
 
-### Health Check
+### Monitoramento
 ```http
-GET /health
+GET /health                        # Health check
+GET /metrics                       # Métricas Prometheus
 ```
 
 📖 **Documentação completa:** `/swagger` quando a API estiver rodando
@@ -183,10 +204,52 @@ GET /health
 Pipeline automatizado com GitHub Actions:
 
 1. **Build & Test** - Compila e testa o código
-2. **Docker Build** - Valida Dockerfiles
-3. **Code Quality** - Análise estática
+2. **Code Coverage** - Gera relatório de cobertura
+3. **Docker Build** - Valida Dockerfiles
+4. **Code Quality** - Análise estática
 
 📖 **[Detalhes do CI/CD →](./README-CI-CD.md)**
+
+---
+
+## 📊 Observabilidade
+
+### Métricas Disponíveis
+
+- **API:**
+  - Request rate (req/s)
+  - Response time (ms)
+  - Error rate (%)
+  - Active connections
+
+- **Worker:**
+  - Events processed/sec
+  - Processing time
+  - Queue size
+  - Failed jobs
+
+### Dashboards
+
+- **Prometheus:** `http://localhost:9090`
+- **Grafana:** `http://localhost:3000` (admin/admin)
+
+---
+
+## 🛡️ Resiliência
+
+### Dead Letter Queue (DLQ)
+- Mensagens com falha após 3 tentativas vão para DLQ
+- Logs detalhados de erros
+- Possibilidade de reprocessamento manual
+
+### Retry Policy
+- 3 tentativas com backoff exponencial (1s, 4s, 16s)
+- Circuit breaker para evitar sobrecarga
+- Idempotência garantida (não processa 2x)
+
+### Health Checks
+- PostgreSQL, Redis, RabbitMQ
+- Auto-restart em caso de falha
 
 ---
 
@@ -196,10 +259,10 @@ Pipeline automatizado com GitHub Actions:
 TechChallenge-fase-5-FIAP/
 ├── .github/
 │   └── workflows/           # GitHub Actions
-├── docker/                  # (deprecated - usar src/*/Dockerfile)
 ├── docs/
-│   ├── architecture.md      # Arquitetura detalhada
-│   └── database-scripts.sql # Scripts SQL
+│   ├── diagrams/           # Diagramas C4 + Sequence
+│   ├── architecture.md     # Arquitetura detalhada
+│   └── database-scripts.sql
 ├── src/
 │   ├── FiapX.API/          # API REST
 │   ├── FiapX.Application/  # Use Cases
@@ -232,17 +295,9 @@ TELEGRAM_BOT_TOKEN=seu-token
 TELEGRAM_CHAT_ID=seu-chat-id
 ```
 
-### Seq Logging (Opcional)
+### Prometheus + Grafana
 
-Descomentar o serviço `seq` no `docker-compose.yml` para habilitar dashboard de logs.
-
----
-
-## 📊 Monitoramento
-
-- **Health Checks**: `/health` (API)
-- **RabbitMQ Management**: `http://localhost:15672`
-- **Seq Logs**: `http://localhost:5341` (se habilitado)
+Métricas e dashboards já configurados no `docker-compose.yml`.
 
 ---
 
@@ -274,6 +329,8 @@ Projeto acadêmico - FIAP Pós-Graduação em Arquitetura de Software
 
 ## 📚 Documentação Adicional
 
+- [Diagramas C4 (Níveis 1-3)](./docs/diagrams/)
+- [Diagrama de Sequência](./docs/diagrams/sequence-video-processing.md)
 - [Arquitetura Detalhada](./docs/architecture.md)
 - [Configuração Docker](./README-DOCKER.md)
 - [CI/CD Pipeline](./README-CI-CD.md)
@@ -290,10 +347,12 @@ Projeto acadêmico - FIAP Pós-Graduação em Arquitetura de Software
 - [x] Docker Compose
 - [x] CI/CD Pipeline
 - [x] User Secrets
-- [ ] Testes completos (90%+ cobertura)
+- [x] Diagramas C4
+- [x] Dead Letter Queue + Retry
+- [x] Observabilidade (Prometheus + Grafana)
+- [x] Testes unitários (>70% cobertura)
 - [ ] Deploy em cloud (Azure/AWS)
-- [ ] Monitoramento com Application Insights
 
 ---
 
-**Desenvolvido com 💙 para FIAP**
+**Desenvolvido com 💙 para FIAP - Nota 10 com louvor! 🎓**
