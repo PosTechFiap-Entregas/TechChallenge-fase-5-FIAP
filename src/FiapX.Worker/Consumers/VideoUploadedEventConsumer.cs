@@ -2,6 +2,7 @@
 using FiapX.Domain.Entities;
 using FiapX.Domain.Enums;
 using FiapX.Domain.Interfaces;
+using FiapX.Worker.Services; // ← ADICIONADO
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +11,7 @@ namespace FiapX.Worker.Consumers;
 /// <summary>
 /// Consumer que processa vídeos quando eles são enviados.
 /// Consome VideoUploadedEvent da fila RabbitMQ.
-/// Implementa idempotência, timeout e logging detalhado.
+/// Implementa idempotência, timeout, logging detalhado e métricas Prometheus.
 /// </summary>
 public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
 {
@@ -20,6 +21,7 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
     private readonly IMessagePublisher _messagePublisher;
     private readonly ITelegramNotificationService _telegramNotificationService;
     private readonly ILogger<VideoUploadedEventConsumer> _logger;
+    private readonly VideoMetricsService _metrics; // ← ADICIONADO
 
     public VideoUploadedEventConsumer(
         IUnitOfWork unitOfWork,
@@ -27,7 +29,8 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
         IVideoProcessingService videoProcessingService,
         IMessagePublisher messagePublisher,
         ITelegramNotificationService telegramNotificationService,
-        ILogger<VideoUploadedEventConsumer> logger)
+        ILogger<VideoUploadedEventConsumer> logger,
+        VideoMetricsService metrics) // ← ADICIONADO
     {
         _unitOfWork = unitOfWork;
         _storageService = storageService;
@@ -35,6 +38,7 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
         _messagePublisher = messagePublisher;
         _telegramNotificationService = telegramNotificationService;
         _logger = logger;
+        _metrics = metrics; // ← ADICIONADO
     }
 
     public async Task Consume(ConsumeContext<VideoUploadedEvent> context)
@@ -47,6 +51,12 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
             messageId,
             message.VideoId,
             message.UserId);
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // MÉTRICAS: Iniciar contadores
+        // ═══════════════════════════════════════════════════════════════════════
+        var startTime = DateTime.UtcNow; // ← ADICIONADO
+        _metrics.RecordVideoProcessingStarted(); // ← ADICIONADO
 
         try
         {
@@ -61,6 +71,11 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     "[{MessageId}] ⚠️ Vídeo {VideoId} não encontrado no banco de dados",
                     messageId,
                     message.VideoId);
+
+                // ← ADICIONADO: Decrementar métrica se vídeo não existe
+                var duration = (DateTime.UtcNow - startTime).TotalSeconds;
+                _metrics.RecordVideoProcessingFailed(duration);
+
                 return; // Ack da mensagem (não vai reprocessar)
             }
 
@@ -71,6 +86,11 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     "[{MessageId}] ✅ Vídeo {VideoId} já foi processado com sucesso. Ignorando mensagem duplicada.",
                     messageId,
                     message.VideoId);
+
+                // ← ADICIONADO: Decrementar métrica (já processado)
+                var duration = (DateTime.UtcNow - startTime).TotalSeconds;
+                _metrics.RecordVideoProcessingFailed(duration);
+
                 return; // Ack (idempotente - não reprocessa)
             }
 
@@ -81,6 +101,11 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     "[{MessageId}] ⚙️ Vídeo {VideoId} já está sendo processado por outro worker. Ignorando.",
                     messageId,
                     message.VideoId);
+
+                // ← ADICIONADO: Decrementar métrica (duplicado)
+                var duration = (DateTime.UtcNow - startTime).TotalSeconds;
+                _metrics.RecordVideoProcessingFailed(duration);
+
                 return; // Ack (idempotente - evita duplicação)
             }
 
@@ -151,6 +176,10 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     "Timeout: processamento excedeu 10 minutos",
                     context.CancellationToken);
 
+                // ← ADICIONADO: Registrar timeout nas métricas
+                var duration = (DateTime.UtcNow - startTime).TotalSeconds;
+                _metrics.RecordVideoProcessingFailed(duration);
+
                 throw; // Re-throw para que MassTransit faça retry
             }
 
@@ -179,6 +208,13 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     duration: result.ProcessingDuration);
 
                 await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+
+                // ═══════════════════════════════════════════════════════════════
+                // MÉTRICAS: Registrar sucesso
+                // ═══════════════════════════════════════════════════════════════
+                _metrics.RecordVideoProcessingSuccess(
+                    result.ProcessingDuration.TotalSeconds,
+                    result.FrameCount); // ← ADICIONADO
 
                 _logger.LogInformation(
                     "[{MessageId}] ✅ Vídeo {VideoId} processado com sucesso: {FrameCount} frames em {Duration:F2}s",
@@ -215,6 +251,12 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                 // ───────────────────────────────────────────────────────────────
                 video.FailProcessing(result.ErrorMessage ?? "Erro desconhecido");
                 await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+
+                // ═══════════════════════════════════════════════════════════════
+                // MÉTRICAS: Registrar falha
+                // ═══════════════════════════════════════════════════════════════
+                _metrics.RecordVideoProcessingFailed(
+                    result.ProcessingDuration.TotalSeconds); // ← ADICIONADO
 
                 _logger.LogError(
                     "[{MessageId}] ❌ Falha ao processar vídeo {VideoId}: {Error}",
@@ -268,6 +310,12 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                 "[{MessageId}] 💥 Erro crítico ao processar vídeo {VideoId}",
                 messageId,
                 message.VideoId);
+
+            // ═══════════════════════════════════════════════════════════════════
+            // MÉTRICAS: Registrar erro crítico
+            // ═══════════════════════════════════════════════════════════════════
+            var duration = (DateTime.UtcNow - startTime).TotalSeconds; // ← ADICIONADO
+            _metrics.RecordVideoProcessingFailed(duration); // ← ADICIONADO
 
             // Tentar marcar como falha no banco
             try

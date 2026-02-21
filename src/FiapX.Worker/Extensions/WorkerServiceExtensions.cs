@@ -1,4 +1,5 @@
 ﻿using FiapX.Worker.Consumers;
+using FiapX.Worker.Services;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -96,6 +97,9 @@ public static class WorkerServiceExtensions
                 cfg.ConfigureEndpoints(context);
             });
         });
+
+        // Métricas Prometheus
+        services.AddSingleton<VideoMetricsService>();
 
         return services;
     }

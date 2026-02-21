@@ -64,20 +64,15 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      # ConnectionStrings
       ConnectionStrings__DefaultConnection: ${POSTGRES_CONNECTION_STRING}
       ConnectionStrings__Redis: ${REDIS_CONNECTION_STRING}
-      # JWT
       JWT__Secret: ${JWT_SECRET}
-      # Telegram
       Telegram__Enabled: ${TELEGRAM_ENABLED}
       Telegram__BotToken: ${TELEGRAM_BOT_TOKEN}
       Telegram__ChatId: ${TELEGRAM_CHAT_ID}
-      # RabbitMQ
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USERNAME}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
-      # HealthChecks
       HealthChecks__PostgreSQL: ${POSTGRES_CONNECTION_STRING}
       HealthChecks__Redis: ${REDIS_CONNECTION_STRING}
       HealthChecks__RabbitMQ: ${RABBITMQ_CONNECTION_STRING}
@@ -103,17 +98,16 @@ services:
     container_name: fiapx-worker
     environment:
       DOTNET_ENVIRONMENT: Production
-      # ConnectionStrings
       ConnectionStrings__DefaultConnection: ${POSTGRES_CONNECTION_STRING}
       ConnectionStrings__Redis: ${REDIS_CONNECTION_STRING}
-      # Telegram
       Telegram__Enabled: ${TELEGRAM_ENABLED}
       Telegram__BotToken: ${TELEGRAM_BOT_TOKEN}
       Telegram__ChatId: ${TELEGRAM_CHAT_ID}
-      # RabbitMQ
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USERNAME}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+    ports:
+      - "9091:9091"  # Porta para métricas Prometheus
     volumes:
       - shared_storage:/app/storage
     depends_on:
@@ -129,6 +123,44 @@ services:
       - fiapx-network
     restart: unless-stopped
 
+  # ─── Observabilidade ──────────────────────────────────────────────────────
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: fiapx-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - fiapx-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: fiapx-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - fiapx-network
+    restart: unless-stopped
+
 networks:
   fiapx-network:
     driver: bridge
@@ -138,3 +170,5 @@ volumes:
   redis_data:
   rabbitmq_data:
   shared_storage:
+  prometheus_data:
+  grafana_data:

@@ -1,0 +1,41 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# PROMETHEUS CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════
+# Este arquivo configura o Prometheus para coletar métricas da API e Worker
+# ═══════════════════════════════════════════════════════════════════════════
+
+global:
+  scrape_interval: 15s      # Coleta métricas a cada 15 segundos
+  evaluation_interval: 15s  # Avalia regras a cada 15 segundos
+  external_labels:
+    monitor: 'fiapx-monitor'
+    environment: 'production'
+
+# Configuração de coleta de métricas
+scrape_configs:
+  # ─── Prometheus (self-monitoring) ───────────────────────────────────────
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # ─── FiapX API ──────────────────────────────────────────────────────────
+  - job_name: 'fiapx-api'
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['api:8080']
+        labels:
+          service: 'fiapx-api'
+          environment: 'production'
+
+  # ─── FiapX Worker ───────────────────────────────────────────────────────
+  - job_name: 'fiapx-worker'
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['worker:9091']
+        labels:
+          service: 'fiapx-worker'
+          environment: 'production'

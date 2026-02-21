@@ -4,6 +4,7 @@ using FiapX.Application.Extensions;
 using FiapX.Infrastructure.Extensions;
 using FiapX.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using Prometheus; // ← ADICIONADO
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,21 @@ app.UseSerilogRequestLogging();
 app.UseSwaggerConfiguration();
 
 app.UseCors("CorsPolicy");
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PROMETHEUS METRICS
+// ═══════════════════════════════════════════════════════════════════════════
+// Middleware que coleta métricas HTTP automaticamente
+app.UseHttpMetrics(options =>
+{
+    // Adiciona labels customizados
+    options.AddCustomLabel("host", context => context.Request.Host.Host);
+});
+
+// Endpoint /metrics para Prometheus coletar
+app.MapMetrics();
+// ═══════════════════════════════════════════════════════════════════════════
+
 app.UseAuthentication();
 app.UseAuthorization();
 
