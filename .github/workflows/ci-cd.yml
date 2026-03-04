@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 env:
   DOTNET_VERSION: '8.0.x'
 
@@ -21,7 +25,7 @@ jobs:
     - name: 📥 Checkout do código
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Necessário para Codecov
+        fetch-depth: 0
     
     - name: 🔧 Setup .NET ${{ env.DOTNET_VERSION }}
       uses: actions/setup-dotnet@v4
@@ -44,30 +48,41 @@ jobs:
           /p:CollectCoverage=true \
           /p:CoverletOutputFormat=opencover \
           /p:CoverletOutput=./coverage/ \
-          /p:Exclude="[*.Tests]*" \
-          || true
+          /p:Exclude="[*.Tests]*"
     
-    - name: 📊 Publicar resultados dos testes
-      uses: dorny/test-reporter@v1
+    - name: 📊 Resumo dos Testes
       if: always()
-      with:
-        name: Test Results
-        path: '**/test-results.trx'
-        reporter: dotnet-trx
-        fail-on-error: false
+      run: |
+        echo "═══════════════════════════════════════════════════════════"
+        echo "📊 RESUMO DOS TESTES"
+        echo "═══════════════════════════════════════════════════════════"
+        
+        RESULT_FILES=$(find . -name "test-results.trx" -type f)
+        if [ -n "$RESULT_FILES" ]; then
+          TOTAL_TESTS=$(grep -h "outcome=" $RESULT_FILES | wc -l || echo "0")
+          PASSED_TESTS=$(grep -h 'outcome="Passed"' $RESULT_FILES | wc -l || echo "0")
+          FAILED_TESTS=$(grep -h 'outcome="Failed"' $RESULT_FILES | wc -l || echo "0")
+          
+          echo "✅ Testes passando: $PASSED_TESTS"
+          echo "❌ Testes falhando: $FAILED_TESTS"
+          echo "📊 Total de testes: $TOTAL_TESTS"
+        else
+          echo "⚠️ Nenhum arquivo de resultado encontrado"
+        fi
+        
+        echo "═══════════════════════════════════════════════════════════"
     
     - name: 📈 Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         files: ./tests/**/coverage.opencover.xml
         flags: unittests
         name: codecov-fiapx
         fail_ci_if_error: false
         verbose: true
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     
-    - name: 📊 Upload dos resultados dos testes
+    - name: 📊 Upload dos artefatos
       uses: actions/upload-artifact@v4
       if: always()
       with:
@@ -75,35 +90,13 @@ jobs:
         path: |
           **/test-results.trx
           **/coverage.opencover.xml
-    
-    - name: 📋 Resumo dos Testes
-      if: always()
-      run: |
-        echo "═══════════════════════════════════════════════════════════"
-        echo "📊 RESUMO DOS TESTES"
-        echo "═══════════════════════════════════════════════════════════"
-        
-        # Contar testes
-        TOTAL_TESTS=$(find . -name "test-results.trx" -exec grep -o "outcome=" {} \; | wc -l || echo "0")
-        PASSED_TESTS=$(find . -name "test-results.trx" -exec grep -o 'outcome="Passed"' {} \; | wc -l || echo "0")
-        FAILED_TESTS=$(find . -name "test-results.trx" -exec grep -o 'outcome="Failed"' {} \; | wc -l || echo "0")
-        
-        echo "✅ Testes passando: $PASSED_TESTS"
-        echo "❌ Testes falhando: $FAILED_TESTS"
-        echo "📊 Total de testes: $TOTAL_TESTS"
-        echo "═══════════════════════════════════════════════════════════"
-        
-        # Verificar cobertura
-        if [ -f "tests/**/coverage.opencover.xml" ]; then
-          echo "📈 Relatório de cobertura gerado!"
-          echo "🔗 Acesse o Codecov para ver detalhes"
-        fi
+        retention-days: 30
     
     - name: ✅ Build e testes concluídos
-      run: echo "Build, testes e análise de cobertura concluídos!"
+      run: echo "✅ Build, testes e análise de cobertura concluídos!"
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # JOB 2: DOCKER BUILD (só roda se o build passar)
+  # JOB 2: DOCKER BUILD
   # ═══════════════════════════════════════════════════════════════════════════
   docker-build:
     name: Docker Build
@@ -148,10 +141,10 @@ jobs:
         docker compose config > /dev/null
         echo "✅ docker-compose.yml válido!"
     
-    - name: 📊 Resumo
+    - name: 📊 Resumo Docker
       run: |
         echo "═══════════════════════════════════════════════════════════"
-        echo "✅ DOCKER BUILD CONCLUÍDO COM SUCESSO!"
+        echo "✅ DOCKER BUILD CONCLUÍDO!"
         echo "═══════════════════════════════════════════════════════════"
         echo "📦 Imagens criadas:"
         echo "   - fiapx-api:latest"
@@ -159,7 +152,7 @@ jobs:
         echo "═══════════════════════════════════════════════════════════"
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # JOB 3: CODE QUALITY (análise de código)
+  # JOB 3: CODE QUALITY
   # ═══════════════════════════════════════════════════════════════════════════
   code-quality:
     name: Análise de Qualidade
@@ -177,48 +170,34 @@ jobs:
     
     - name: 📊 Análise de warnings
       run: |
-        echo "Analisando warnings do compilador..."
+        echo "Analisando warnings..."
         dotnet build TechChallenge-Fase5.slnx --configuration Release /p:TreatWarningsAsErrors=false > build-output.txt 2>&1 || true
         
-        # Contar warnings
         WARNING_COUNT=$(grep -c "warning" build-output.txt || echo "0")
-        echo "⚠️ Total de warnings encontrados: $WARNING_COUNT"
+        echo "⚠️ Warnings: $WARNING_COUNT"
         
         if [ $WARNING_COUNT -gt 0 ]; then
-          echo "Exibindo warnings:"
-          grep "warning" build-output.txt || true
+          grep "warning" build-output.txt | head -20 || true
         else
-          echo "✅ Nenhum warning encontrado!"
+          echo "✅ Sem warnings!"
         fi
     
-    - name: 📏 Estatísticas do Código
+    - name: 📏 Estatísticas
       run: |
         echo "═══════════════════════════════════════════════════════════"
         echo "📊 ESTATÍSTICAS DO CÓDIGO"
         echo "═══════════════════════════════════════════════════════════"
-        
-        # Contar linhas de código
-        echo "📝 Linhas de código (src/):"
-        find src -name "*.cs" | xargs wc -l | tail -1
-        
-        echo ""
-        echo "🧪 Linhas de teste (tests/):"
-        find tests -name "*.cs" | xargs wc -l | tail -1
-        
-        echo ""
-        echo "📁 Total de arquivos .cs:"
-        find . -name "*.cs" | wc -l
-        
+        echo "📝 Código: $(find src -name "*.cs" -exec wc -l {} + | tail -1 | awk '{print $1}') linhas"
+        echo "🧪 Testes: $(find tests -name "*.cs" -exec wc -l {} + | tail -1 | awk '{print $1}') linhas"
+        echo "📁 Arquivos .cs: $(find . -name "*.cs" | wc -l)"
+        echo "📦 Projetos: $(find . -name "*.csproj" | wc -l)"
         echo "═══════════════════════════════════════════════════════════"
-    
-    - name: ✅ Análise concluída
-      run: echo "Análise de qualidade concluída!"
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # JOB 4: STATUS SUMMARY (resumo final)
+  # JOB 4: SUMMARY
   # ═══════════════════════════════════════════════════════════════════════════
   summary:
-    name: Resumo Final
+    name: Resumo
     runs-on: ubuntu-latest
     needs: [build-and-test, docker-build, code-quality]
     if: always()
@@ -229,13 +208,13 @@ jobs:
         echo "═══════════════════════════════════════════════════════════"
         echo "🎯 PIPELINE CONCLUÍDO"
         echo "═══════════════════════════════════════════════════════════"
-        echo "✅ Build e Testes: ${{ needs.build-and-test.result }}"
-        echo "✅ Docker Build: ${{ needs.docker-build.result }}"
-        echo "✅ Code Quality: ${{ needs.code-quality.result }}"
+        echo "✅ Build/Testes: ${{ needs.build-and-test.result }}"
+        echo "🐳 Docker Build: ${{ needs.docker-build.result }}"
+        echo "📊 Code Quality: ${{ needs.code-quality.result }}"
         echo "═══════════════════════════════════════════════════════════"
-        echo ""
-        echo "📈 Próximos passos:"
-        echo "  1. Verificar cobertura no Codecov"
-        echo "  2. Revisar warnings (se houver)"
-        echo "  3. Deploy (se necessário)"
-        echo "═══════════════════════════════════════════════════════════"
+        
+        if [ "${{ needs.build-and-test.result }}" == "success" ]; then
+          echo "✅ Todos os testes passaram!"
+          echo "📈 Verifique a cobertura no Codecov"
+          echo "🔗 https://app.codecov.io/github/wesleygyn/TechChallenge-fase-5-FIAP"
+        fi
