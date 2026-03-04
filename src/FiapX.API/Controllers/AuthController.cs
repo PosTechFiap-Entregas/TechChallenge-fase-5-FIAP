@@ -1,6 +1,5 @@
 ﻿using FiapX.Application.DTOs;
-using FiapX.Application.UseCases.Auth;
-using FiapX.Application.Validators;
+using FiapX.Application.Interfaces.UseCases;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,14 +13,14 @@ namespace FiapX.API.Controllers;
 [Produces("application/json")]
 public class AuthController : ControllerBase
 {
-    private readonly RegisterUserUseCase _registerUseCase;
-    private readonly LoginUseCase _loginUseCase;
+    private readonly IRegisterUserUseCase _registerUseCase;
+    private readonly ILoginUseCase _loginUseCase;
     private readonly IValidator<RegisterUserRequest> _registerValidator;
     private readonly IValidator<LoginRequest> _loginValidator;
 
     public AuthController(
-        RegisterUserUseCase registerUseCase,
-        LoginUseCase loginUseCase,
+        IRegisterUserUseCase registerUseCase,
+        ILoginUseCase loginUseCase,
         IValidator<RegisterUserRequest> registerValidator,
         IValidator<LoginRequest> loginValidator)
     {

@@ -1,5 +1,6 @@
 ﻿using FiapX.Application.DTOs;
 using FiapX.Application.Interfaces;
+using FiapX.Application.Interfaces.UseCases;
 using FiapX.Domain.Interfaces;
 using FiapX.Shared.Results;
 using FiapX.Shared.Security;
@@ -9,7 +10,7 @@ namespace FiapX.Application.UseCases.Auth;
 /// <summary>
 /// Use Case para login de usuário
 /// </summary>
-public class LoginUseCase
+public class LoginUseCase : ILoginUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IJwtTokenService _jwtService;

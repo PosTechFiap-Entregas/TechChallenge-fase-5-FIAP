@@ -10,7 +10,9 @@
   <Folder Name="/tests/">
     <Project Path="tests/FiapX.API.Tests/FiapX.API.Tests.csproj" />
     <Project Path="tests/FiapX.Application.Tests/FiapX.Application.Tests.csproj" />
+    <Project Path="tests/FiapX.Domain.Tests/FiapX.Domain.Tests.csproj" Id="0f44457e-fa76-43d9-ba0f-55e28cba06b3" />
     <Project Path="tests/FiapX.Infrastructure.Tests/FiapX.Infrastructure.Tests.csproj" />
+    <Project Path="tests/FiapX.Shared.Tests/FiapX.Shared.Tests.csproj" Id="9167589e-f011-403f-a543-970ce085cfd2" />
     <Project Path="tests/FiapX.Worker.Tests/FiapX.Worker.Tests.csproj" />
   </Folder>
 </Solution>
