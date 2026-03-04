@@ -1,4 +1,5 @@
 ﻿using FiapX.Application.DTOs;
+using FiapX.Application.Interfaces.UseCases;
 using FiapX.Domain.Interfaces;
 using FiapX.Shared.Results;
 
@@ -7,7 +8,7 @@ namespace FiapX.Application.UseCases.Videos;
 /// <summary>
 /// Use Case para consultar status de um vídeo específico
 /// </summary>
-public class GetVideoStatusUseCase
+public class GetVideoStatusUseCase : IGetVideoStatusUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
 

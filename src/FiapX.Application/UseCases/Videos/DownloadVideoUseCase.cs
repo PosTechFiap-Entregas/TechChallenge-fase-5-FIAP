@@ -1,4 +1,5 @@
 ﻿using FiapX.Application.DTOs;
+using FiapX.Application.Interfaces.UseCases;
 using FiapX.Domain.Interfaces;
 using FiapX.Shared.Results;
 
@@ -7,7 +8,7 @@ namespace FiapX.Application.UseCases.Videos;
 /// <summary>
 /// Use Case para download do ZIP de frames processados
 /// </summary>
-public class DownloadVideoUseCase
+public class DownloadVideoUseCase : IDownloadVideoUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStorageService _storageService;

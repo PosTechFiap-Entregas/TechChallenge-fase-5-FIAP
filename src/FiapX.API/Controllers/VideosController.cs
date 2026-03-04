@@ -1,6 +1,5 @@
 ﻿using FiapX.Application.DTOs;
-using FiapX.Application.UseCases.Videos;
-using FiapX.Application.Validators;
+using FiapX.Application.Interfaces.UseCases;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,17 +16,17 @@ namespace FiapX.API.Controllers;
 [Produces("application/json")]
 public class VideosController : ControllerBase
 {
-    private readonly UploadVideoUseCase _uploadUseCase;
-    private readonly GetUserVideosUseCase _getUserVideosUseCase;
-    private readonly GetVideoStatusUseCase _getVideoStatusUseCase;
-    private readonly DownloadVideoUseCase _downloadUseCase;
+    private readonly IUploadVideoUseCase _uploadUseCase;
+    private readonly IGetUserVideosUseCase _getUserVideosUseCase;
+    private readonly IGetVideoStatusUseCase _getVideoStatusUseCase;
+    private readonly IDownloadVideoUseCase _downloadUseCase;
     private readonly IValidator<UploadVideoRequest> _uploadValidator;
 
     public VideosController(
-        UploadVideoUseCase uploadUseCase,
-        GetUserVideosUseCase getUserVideosUseCase,
-        GetVideoStatusUseCase getVideoStatusUseCase,
-        DownloadVideoUseCase downloadUseCase,
+        IUploadVideoUseCase uploadUseCase,
+        IGetUserVideosUseCase getUserVideosUseCase,
+        IGetVideoStatusUseCase getVideoStatusUseCase,
+        IDownloadVideoUseCase downloadUseCase,
         IValidator<UploadVideoRequest> uploadValidator)
     {
         _uploadUseCase = uploadUseCase;

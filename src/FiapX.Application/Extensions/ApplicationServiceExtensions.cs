@@ -1,4 +1,5 @@
-﻿using FiapX.Application.UseCases.Auth;
+﻿using FiapX.Application.Interfaces.UseCases;
+using FiapX.Application.UseCases.Auth;
 using FiapX.Application.UseCases.Videos;
 using FiapX.Application.Validators;
 using FluentValidation;
@@ -17,14 +18,14 @@ public static class ApplicationServiceExtensions
         services.AddValidatorsFromAssemblyContaining<RegisterUserRequestValidator>();
 
         // Use Cases - Auth
-        services.AddScoped<RegisterUserUseCase>();
-        services.AddScoped<LoginUseCase>();
+        services.AddScoped<IRegisterUserUseCase, RegisterUserUseCase>();
+        services.AddScoped<ILoginUseCase, LoginUseCase>();
 
         // Use Cases - Videos
-        services.AddScoped<UploadVideoUseCase>();
-        services.AddScoped<GetUserVideosUseCase>();
-        services.AddScoped<GetVideoStatusUseCase>();
-        services.AddScoped<DownloadVideoUseCase>();
+        services.AddScoped<IUploadVideoUseCase, UploadVideoUseCase>();
+        services.AddScoped<IGetUserVideosUseCase, GetUserVideosUseCase>();
+        services.AddScoped<IGetVideoStatusUseCase, GetVideoStatusUseCase>();
+        services.AddScoped<IDownloadVideoUseCase, DownloadVideoUseCase>();
 
         return services;
     }

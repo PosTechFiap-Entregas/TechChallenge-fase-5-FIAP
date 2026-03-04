@@ -2,7 +2,7 @@
 using FiapX.Domain.Entities;
 using FiapX.Domain.Enums;
 using FiapX.Domain.Interfaces;
-using FiapX.Worker.Services; // ← ADICIONADO
+using FiapX.Worker.Services;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 

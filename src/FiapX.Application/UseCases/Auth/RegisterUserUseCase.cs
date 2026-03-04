@@ -1,5 +1,6 @@
 ﻿using FiapX.Application.DTOs;
 using FiapX.Application.Interfaces;
+using FiapX.Application.Interfaces.UseCases;
 using FiapX.Domain.Entities;
 using FiapX.Domain.Interfaces;
 using FiapX.Shared.Results;
@@ -10,7 +11,7 @@ namespace FiapX.Application.UseCases.Auth;
 /// <summary>
 /// Use Case para registro de novo usuário
 /// </summary>
-public class RegisterUserUseCase
+public class RegisterUserUseCase : IRegisterUserUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IJwtTokenService _jwtService;

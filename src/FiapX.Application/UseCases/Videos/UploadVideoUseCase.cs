@@ -1,5 +1,6 @@
 ﻿using FiapX.Application.DTOs;
 using FiapX.Application.Events;
+using FiapX.Application.Interfaces.UseCases;
 using FiapX.Domain.Entities;
 using FiapX.Domain.Interfaces;
 using FiapX.Shared.Results;
@@ -9,7 +10,7 @@ namespace FiapX.Application.UseCases.Videos;
 /// <summary>
 /// Use Case para upload de vídeo
 /// </summary>
-public class UploadVideoUseCase
+public class UploadVideoUseCase : IUploadVideoUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStorageService _storageService;
