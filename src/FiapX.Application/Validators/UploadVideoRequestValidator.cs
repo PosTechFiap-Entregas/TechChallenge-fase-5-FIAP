@@ -32,8 +32,11 @@ public class UploadVideoRequestValidator : AbstractValidator<UploadVideoRequest>
             .WithMessage("ID do usuário é obrigatório.");
     }
 
-    private static bool HasValidExtension(string fileName)
+    private static bool HasValidExtension(string? fileName)
     {
+        if (string.IsNullOrWhiteSpace(fileName))
+            return false;
+
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
         return VideoConstants.AllowedExtensions.Contains(extension);
     }
