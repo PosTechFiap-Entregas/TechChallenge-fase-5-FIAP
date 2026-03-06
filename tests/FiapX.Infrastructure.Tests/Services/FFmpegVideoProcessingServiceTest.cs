@@ -2,6 +2,7 @@
 using FiapX.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Reflection;
 
 namespace FiapX.Infrastructure.Tests.Services;
 
@@ -23,29 +24,32 @@ public class FFmpegVideoProcessingServiceTests
 
     private static void CleanupDir(string dir)
     {
-        if (Directory.Exists(dir))
-            Directory.Delete(dir, recursive: true);
+        try { if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true); } catch { }
     }
 
     private static void CleanupFile(string file)
     {
-        if (File.Exists(file))
-            File.Delete(file);
+        try { if (File.Exists(file)) File.Delete(file); } catch { }
+    }
+
+    private static void SetFfmpegDownloaded(bool value)
+    {
+        var field = typeof(FFmpegVideoProcessingService)
+            .GetField("_ffmpegDownloaded", BindingFlags.Static | BindingFlags.NonPublic);
+        field?.SetValue(null, value);
     }
 
     [Fact]
-    public void FFmpegVideoProcessingService_Constructor_ShouldCreateInstance()
+    public void Constructor_ShouldCreateInstance()
     {
         var service = new FFmpegVideoProcessingService(NullLogger<FFmpegVideoProcessingService>.Instance);
-
         service.Should().NotBeNull();
     }
 
     [Fact]
-    public void FFmpegVideoProcessingService_Constructor_ShouldNotThrow()
+    public void Constructor_ShouldNotThrow()
     {
         var act = () => new FFmpegVideoProcessingService(NullLogger<FFmpegVideoProcessingService>.Instance);
-
         act.Should().NotThrow();
     }
 
@@ -54,118 +58,167 @@ public class FFmpegVideoProcessingServiceTests
     {
         var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
         var outputDir = CreateTempOutputDir();
-
         try
         {
+            SetFfmpegDownloaded(true);
+
             var result = await _service.ProcessVideoAsync(nonExistentPath, outputDir);
 
             result.Should().NotBeNull();
             result.Success.Should().BeFalse();
-            result.ErrorMessage.Should().NotBeNullOrEmpty();
             result.ErrorMessage.Should().Contain("não encontrado");
         }
-        finally
-        {
-            CleanupDir(outputDir);
-        }
+        finally { CleanupDir(outputDir); }
     }
 
     [Fact]
-    public async Task CreateZipFromFramesAsync_ShouldCreateZipFile()
+    public async Task ProcessVideoAsync_WhenFileNotFound_FrameCountShouldBeZero()
     {
-        // Arrange
-        var serviceType = typeof(FFmpegVideoProcessingService);
-        var method = serviceType.GetMethod("CreateZipFromFramesAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        method.Should().NotBeNull();
-
-        var tempDir = CreateTempOutputDir();
-        var framesDir = Path.Combine(tempDir, "frames_test");
-        Directory.CreateDirectory(framesDir);
-
-        // create some dummy frame files
-        for (int i = 0; i < 3; i++)
-        {
-            await File.WriteAllTextAsync(Path.Combine(framesDir, $"frame_{i}.png"), "data");
-        }
-
-        var zipPath = Path.Combine(tempDir, "frames.zip");
-
-        try
-        {
-            var instance = _service;
-            var task = (Task)method!.Invoke(instance, new object[] { framesDir, zipPath, CancellationToken.None })!;
-            await task;
-
-            File.Exists(zipPath).Should().BeTrue();
-        }
-        finally
-        {
-            CleanupDir(tempDir);
-        }
-    }
-
-    [Fact]
-    public void ExtractFramesAsync_WithInvalidMedia_ShouldThrowInvalidOperationException()
-    {
-        // Arrange
-        var serviceType = typeof(FFmpegVideoProcessingService);
-        var method = serviceType.GetMethod("ExtractFramesAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        method.Should().NotBeNull();
-
-        var tempDir = CreateTempOutputDir();
-        var fakeVideo = Path.Combine(tempDir, "fake.mp4");
-        File.WriteAllText(fakeVideo, "not a video");
-
-        try
-        {
-            var instance = _service;
-            var act = () => (Task<int>)method!.Invoke(instance, new object[] { fakeVideo, tempDir, 1, CancellationToken.None })!;
-
-            // Invocation will throw when awaited, so get the task and assert
-            var task = act();
-            Func<Task> awaitTask = async () => { await task; };
-            awaitTask.Should().ThrowAsync<InvalidOperationException>().GetAwaiter().GetResult();
-        }
-        finally
-        {
-            CleanupDir(tempDir);
-        }
-    }
-
-    [Fact]
-    public async Task ProcessVideoAsync_WhenVideoFileDoesNotExist_FrameCountShouldBeZero()
-    {
-        var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
+        SetFfmpegDownloaded(true);
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
         var outputDir = CreateTempOutputDir();
-
         try
         {
-            var result = await _service.ProcessVideoAsync(nonExistentPath, outputDir);
-
+            var result = await _service.ProcessVideoAsync(path, outputDir);
             result.FrameCount.Should().Be(0);
         }
-        finally
-        {
-            CleanupDir(outputDir);
-        }
+        finally { CleanupDir(outputDir); }
     }
 
     [Fact]
-    public async Task ProcessVideoAsync_WhenVideoFileDoesNotExist_ZipPathShouldBeNullOrEmpty()
+    public async Task ProcessVideoAsync_WhenFileNotFound_ZipPathShouldBeNullOrEmpty()
     {
-        var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
+        SetFfmpegDownloaded(true);
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
         var outputDir = CreateTempOutputDir();
-
         try
         {
-            var result = await _service.ProcessVideoAsync(nonExistentPath, outputDir);
-
+            var result = await _service.ProcessVideoAsync(path, outputDir);
             result.ZipPath.Should().BeNullOrEmpty();
         }
-        finally
+        finally { CleanupDir(outputDir); }
+    }
+
+    [Fact]
+    public async Task ProcessVideoAsync_WhenFileNotFound_ShouldReturnResultWithExpectedShape()
+    {
+        SetFfmpegDownloaded(true);
+        var path = Path.Combine(Path.GetTempPath(), "missing_" + Guid.NewGuid() + ".mp4");
+        var outputDir = CreateTempOutputDir();
+        try
         {
-            CleanupDir(outputDir);
+            var result = await _service.ProcessVideoAsync(path, outputDir);
+            result.Success.Should().BeFalse();
+            result.ZipPath.Should().BeNullOrEmpty();
+            result.FrameCount.Should().Be(0);
+            result.ErrorMessage.Should().NotBeNull();
         }
+        finally { CleanupDir(outputDir); }
+    }
+
+    [Fact]
+    public async Task ProcessVideoAsync_ReturnType_ShouldBeVideoProcessingResult()
+    {
+        SetFfmpegDownloaded(true);
+        var path = "/not/found.mp4";
+        var outputDir = CreateTempOutputDir();
+        try
+        {
+            var result = await _service.ProcessVideoAsync(path, outputDir);
+            result.Should().BeOfType<VideoProcessingResult>();
+        }
+        finally { CleanupDir(outputDir); }
+    }
+
+    [Fact]
+    public async Task ProcessVideoAsync_ShouldAlwaysReturnResult_NeverNull()
+    {
+        SetFfmpegDownloaded(true);
+        var path = "/not/found.mp4";
+        var outputDir = CreateTempOutputDir();
+        try
+        {
+            var result = await _service.ProcessVideoAsync(path, outputDir);
+            result.Should().NotBeNull();
+        }
+        finally { CleanupDir(outputDir); }
+    }
+
+    [Fact]
+    public async Task ProcessVideoAsync_WhenFileNotFound_ShouldNotThrowUnhandledException()
+    {
+        SetFfmpegDownloaded(true);
+        var path = Path.Combine(Path.GetTempPath(), "no_throw_" + Guid.NewGuid() + ".mp4");
+        var outputDir = CreateTempOutputDir();
+        try
+        {
+            var act = async () => await _service.ProcessVideoAsync(path, outputDir);
+            await act.Should().NotThrowAsync<Exception>();
+        }
+        finally { CleanupDir(outputDir); }
+    }
+
+    [Fact]
+    public async Task ProcessVideoAsync_WithExistingButInvalidVideoFile_ShouldReturnFailure()
+    {
+        SetFfmpegDownloaded(true);
+        var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
+        var outputDir = CreateTempOutputDir();
+        await File.WriteAllTextAsync(tempFile, "this is not a valid video file");
+        try
+        {
+            var result = await _service.ProcessVideoAsync(tempFile, outputDir);
+            result.Should().NotBeNull();
+            result.Success.Should().BeFalse();
+            result.ErrorMessage.Should().NotBeNullOrEmpty();
+        }
+        finally { CleanupFile(tempFile); CleanupDir(outputDir); }
+    }
+
+    [Fact]
+    public async Task ProcessVideoAsync_WithExistingButInvalidVideoFile_ProcessingDurationShouldBeNonNegative()
+    {
+        SetFfmpegDownloaded(true);
+        var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
+        var outputDir = CreateTempOutputDir();
+        await File.WriteAllTextAsync(tempFile, "invalid content");
+        try
+        {
+            var result = await _service.ProcessVideoAsync(tempFile, outputDir);
+            result.ProcessingDuration.Should().BeGreaterThanOrEqualTo(TimeSpan.Zero);
+        }
+        finally { CleanupFile(tempFile); CleanupDir(outputDir); }
+    }
+
+    [Fact]
+    public async Task ProcessVideoAsync_WithExistingButInvalidVideoFile_FrameCountShouldBeZero()
+    {
+        SetFfmpegDownloaded(true);
+        var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
+        var outputDir = CreateTempOutputDir();
+        await File.WriteAllTextAsync(tempFile, "invalid content");
+        try
+        {
+            var result = await _service.ProcessVideoAsync(tempFile, outputDir);
+            result.FrameCount.Should().Be(0);
+        }
+        finally { CleanupFile(tempFile); CleanupDir(outputDir); }
+    }
+
+    [Fact]
+    public async Task ProcessVideoAsync_WithInvalidFile_ShouldNotThrowUnhandledException()
+    {
+        SetFfmpegDownloaded(true);
+        var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
+        var outputDir = CreateTempOutputDir();
+        await File.WriteAllTextAsync(tempFile, "not a video");
+        try
+        {
+            var act = async () => await _service.ProcessVideoAsync(tempFile, outputDir);
+            await act.Should().NotThrowAsync<NullReferenceException>();
+            await act.Should().NotThrowAsync<ArgumentNullException>();
+        }
+        finally { CleanupFile(tempFile); CleanupDir(outputDir); }
     }
 
     [Theory]
@@ -175,139 +228,15 @@ public class FFmpegVideoProcessingServiceTests
     [InlineData("C:\\nonexistent\\video.mp4")]
     public async Task ProcessVideoAsync_WithInvalidVideoPath_ShouldReturnFailure(string videoPath)
     {
+        SetFfmpegDownloaded(true);
         var outputDir = CreateTempOutputDir();
-
         try
         {
             var result = await _service.ProcessVideoAsync(videoPath, outputDir);
-
             result.Should().NotBeNull();
             result.Success.Should().BeFalse();
         }
-        finally
-        {
-            CleanupDir(outputDir);
-        }
-    }
-
-    [Fact]
-    public async Task ProcessVideoAsync_WhenFileNotFound_ShouldReturnResultWithExpectedShape()
-    {
-        var nonExistentPath = Path.Combine(Path.GetTempPath(), "missing_" + Guid.NewGuid() + ".mp4");
-        var outputDir = CreateTempOutputDir();
-
-        try
-        {
-            var result = await _service.ProcessVideoAsync(nonExistentPath, outputDir);
-
-            result.Success.Should().BeFalse();
-            result.ZipPath.Should().BeNullOrEmpty();
-            result.FrameCount.Should().Be(0);
-            result.ErrorMessage.Should().NotBeNull();
-        }
-        finally
-        {
-            CleanupDir(outputDir);
-        }
-    }
-
-    [Fact]
-    public async Task ProcessVideoAsync_ReturnType_ShouldBeVideoProcessingResult()
-    {
-        var nonExistentPath = "/not/found.mp4";
-        var outputDir = CreateTempOutputDir();
-
-        try
-        {
-            var result = await _service.ProcessVideoAsync(nonExistentPath, outputDir);
-
-            result.Should().NotBeNull();
-            result.Should().BeOfType<VideoProcessingResult>();
-        }
-        finally
-        {
-            CleanupDir(outputDir);
-        }
-    }
-
-    [Fact]
-    public async Task ProcessVideoAsync_ShouldAlwaysReturnResult_NeverNull()
-    {
-        var nonExistentPath = "/not/found.mp4";
-        var outputDir = CreateTempOutputDir();
-
-        try
-        {
-            var result = await _service.ProcessVideoAsync(nonExistentPath, outputDir);
-
-            result.Should().NotBeNull();
-        }
-        finally
-        {
-            CleanupDir(outputDir);
-        }
-    }
-
-    [Fact]
-    public async Task ProcessVideoAsync_WithExistingButInvalidVideoFile_ShouldReturnFailure()
-    {
-        var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
-        var outputDir = CreateTempOutputDir();
-        await File.WriteAllTextAsync(tempFile, "this is not a valid video file");
-
-        try
-        {
-            var result = await _service.ProcessVideoAsync(tempFile, outputDir);
-
-            result.Should().NotBeNull();
-            result.Success.Should().BeFalse();
-            result.ErrorMessage.Should().NotBeNullOrEmpty();
-        }
-        finally
-        {
-            CleanupFile(tempFile);
-            CleanupDir(outputDir);
-        }
-    }
-
-    [Fact]
-    public async Task ProcessVideoAsync_WithExistingButInvalidVideoFile_ProcessingDurationShouldBeNonNegative()
-    {
-        var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
-        var outputDir = CreateTempOutputDir();
-        await File.WriteAllTextAsync(tempFile, "invalid content");
-
-        try
-        {
-            var result = await _service.ProcessVideoAsync(tempFile, outputDir);
-
-            result.ProcessingDuration.Should().BeGreaterThanOrEqualTo(TimeSpan.Zero);
-        }
-        finally
-        {
-            CleanupFile(tempFile);
-            CleanupDir(outputDir);
-        }
-    }
-
-    [Fact]
-    public async Task ProcessVideoAsync_WithExistingButInvalidVideoFile_FrameCountShouldBeZero()
-    {
-        var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
-        var outputDir = CreateTempOutputDir();
-        await File.WriteAllTextAsync(tempFile, "invalid content");
-
-        try
-        {
-            var result = await _service.ProcessVideoAsync(tempFile, outputDir);
-
-            result.FrameCount.Should().Be(0);
-        }
-        finally
-        {
-            CleanupFile(tempFile);
-            CleanupDir(outputDir);
-        }
+        finally { CleanupDir(outputDir); }
     }
 
     [Theory]
@@ -316,128 +245,93 @@ public class FFmpegVideoProcessingServiceTests
     [InlineData(30)]
     public async Task ProcessVideoAsync_WithVariousFpsValues_WhenFileNotFound_ShouldReturnFailure(int fps)
     {
-        var nonExistentPath = "/path/does/not/exist.mp4";
+        SetFfmpegDownloaded(true);
+        var path = "/path/does/not/exist.mp4";
         var outputDir = CreateTempOutputDir();
-
         try
         {
-            var result = await _service.ProcessVideoAsync(nonExistentPath, outputDir, fps: fps);
-
+            var result = await _service.ProcessVideoAsync(path, outputDir, fps: fps);
             result.Success.Should().BeFalse();
         }
-        finally
-        {
-            CleanupDir(outputDir);
-        }
+        finally { CleanupDir(outputDir); }
     }
 
     [Fact]
-    public async Task ProcessVideoAsync_WhenCancelled_ResultShouldIndicateFailure()
+    public async Task ProcessVideoAsync_WhenCancelled_ShouldReturnFailureOrCatchCancellation()
     {
-        var nonExistentPath = Path.Combine(Path.GetTempPath(), "cancel_" + Guid.NewGuid() + ".mp4");
+        SetFfmpegDownloaded(true);
+        var path = Path.Combine(Path.GetTempPath(), "cancel_" + Guid.NewGuid() + ".mp4");
         var outputDir = CreateTempOutputDir();
         var cts = new CancellationTokenSource();
         cts.Cancel();
-
         try
         {
             VideoProcessingResult? result = null;
             try
             {
-                result = await _service.ProcessVideoAsync(nonExistentPath, outputDir, cancellationToken: cts.Token);
+                result = await _service.ProcessVideoAsync(path, outputDir, cancellationToken: cts.Token);
             }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
+            catch (OperationCanceledException) { return; }
 
             result.Should().NotBeNull();
             result!.Success.Should().BeFalse();
         }
-        finally
-        {
-            CleanupDir(outputDir);
-        }
+        finally { CleanupDir(outputDir); }
     }
 
     [Fact]
     public async Task ProcessVideoAsync_WithAlreadyCancelledToken_ShouldNotThrowUnexpectedException()
     {
-        var nonExistentPath = Path.Combine(Path.GetTempPath(), "cancel2_" + Guid.NewGuid() + ".mp4");
+        SetFfmpegDownloaded(true);
+        var path = Path.Combine(Path.GetTempPath(), "cancel2_" + Guid.NewGuid() + ".mp4");
         var outputDir = CreateTempOutputDir();
         var cts = new CancellationTokenSource();
         cts.Cancel();
-
         try
         {
-            var act = async () => await _service.ProcessVideoAsync(
-                nonExistentPath, outputDir, cancellationToken: cts.Token);
-
+            var act = async () => await _service.ProcessVideoAsync(path, outputDir, cancellationToken: cts.Token);
             await act.Should().NotThrowAsync<InvalidOperationException>();
             await act.Should().NotThrowAsync<NullReferenceException>();
             await act.Should().NotThrowAsync<ArgumentNullException>();
         }
-        finally
-        {
-            CleanupDir(outputDir);
-        }
+        finally { CleanupDir(outputDir); }
     }
 
     [Fact]
-    public async Task ProcessVideoAsync_WhenFileNotFound_ShouldNotThrowUnhandledException()
+    public async Task ProcessVideoAsync_WhenFfmpegAlreadyDownloaded_ShouldSkipEnsureFFmpeg()
     {
-        var nonExistentPath = Path.Combine(Path.GetTempPath(), "no_throw_" + Guid.NewGuid() + ".mp4");
+        SetFfmpegDownloaded(true);
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
         var outputDir = CreateTempOutputDir();
-
         try
         {
-            var act = async () => await _service.ProcessVideoAsync(nonExistentPath, outputDir);
-            await act.Should().NotThrowAsync<Exception>();
+            // Chama duas vezes: primeira cobre o early return, segunda confirma idempotência
+            var result1 = await _service.ProcessVideoAsync(path, outputDir);
+            var result2 = await _service.ProcessVideoAsync(path, outputDir);
+
+            result1.Success.Should().BeFalse();
+            result2.Success.Should().BeFalse();
         }
-        finally
-        {
-            CleanupDir(outputDir);
-        }
+        finally { CleanupDir(outputDir); }
     }
 
-    [Fact]
-    public async Task ProcessVideoAsync_WithInvalidFile_ShouldNotThrowUnhandledException()
-    {
-        var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
-        var outputDir = CreateTempOutputDir();
-        await File.WriteAllTextAsync(tempFile, "not a video");
-
-        try
-        {
-            var act = async () => await _service.ProcessVideoAsync(tempFile, outputDir);
-            await act.Should().NotThrowAsync<NullReferenceException>();
-            await act.Should().NotThrowAsync<ArgumentNullException>();
-        }
-        finally
-        {
-            CleanupFile(tempFile);
-            CleanupDir(outputDir);
-        }
-    }
 
     [Fact]
     public async Task ProcessVideoAsync_WhenFFmpegExecutableExists_ShouldSkipDownloadBranch()
     {
-        var ffmpegType = typeof(FFmpegVideoProcessingService);
-        var downloadedField = ffmpegType.GetField("_ffmpegDownloaded", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-        downloadedField?.SetValue(null, false);
+        SetFfmpegDownloaded(false);
 
         var ffmpegPath = Path.Combine(Path.GetTempPath(), "ffmpeg");
         Directory.CreateDirectory(ffmpegPath);
-        var ffmpegExecutable = Path.Combine(ffmpegPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
-        await File.WriteAllTextAsync(ffmpegExecutable, "fake");
+        var ffmpegExecutable = Path.Combine(ffmpegPath,
+            OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
+        await File.WriteAllTextAsync(ffmpegExecutable, "fake ffmpeg binary");
 
-        var nonExistentPath = Path.Combine(Path.GetTempPath(), "missing_ffmpeg_test_" + Guid.NewGuid() + ".mp4");
+        var path = Path.Combine(Path.GetTempPath(), "missing_ffmpeg_test_" + Guid.NewGuid() + ".mp4");
         var outputDir = CreateTempOutputDir();
-
         try
         {
-            var result = await _service.ProcessVideoAsync(nonExistentPath, outputDir);
+            var result = await _service.ProcessVideoAsync(path, outputDir);
 
             result.Should().NotBeNull();
             result.Success.Should().BeFalse();
@@ -445,9 +339,81 @@ public class FFmpegVideoProcessingServiceTests
         }
         finally
         {
-            try { File.Delete(ffmpegExecutable); } catch { }
-            try { Directory.Delete(ffmpegPath, true); } catch { }
+            CleanupFile(ffmpegExecutable);
             CleanupDir(outputDir);
         }
+    }
+
+    [Fact]
+    public async Task CreateZipFromFramesAsync_ShouldCreateZipFile()
+    {
+        var method = typeof(FFmpegVideoProcessingService)
+            .GetMethod("CreateZipFromFramesAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+        method.Should().NotBeNull();
+
+        var tempDir = CreateTempOutputDir();
+        var framesDir = Path.Combine(tempDir, "frames_test");
+        Directory.CreateDirectory(framesDir);
+
+        for (int i = 0; i < 3; i++)
+            await File.WriteAllTextAsync(Path.Combine(framesDir, $"frame_{i}.png"), "data");
+
+        var zipPath = Path.Combine(tempDir, "frames.zip");
+        try
+        {
+            var task = (Task)method!.Invoke(_service, new object[] { framesDir, zipPath, CancellationToken.None })!;
+            await task;
+
+            File.Exists(zipPath).Should().BeTrue();
+        }
+        finally { CleanupDir(tempDir); }
+    }
+
+    [Fact]
+    public async Task CreateZipFromFramesAsync_WhenZipAlreadyExists_ShouldOverwrite()
+    {
+        var method = typeof(FFmpegVideoProcessingService)
+            .GetMethod("CreateZipFromFramesAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+        method.Should().NotBeNull();
+
+        var tempDir = CreateTempOutputDir();
+        var framesDir = Path.Combine(tempDir, "frames_overwrite");
+        Directory.CreateDirectory(framesDir);
+        await File.WriteAllTextAsync(Path.Combine(framesDir, "frame_0.png"), "data");
+
+        var zipPath = Path.Combine(tempDir, "existing.zip");
+        await File.WriteAllTextAsync(zipPath, "old zip content");
+
+        try
+        {
+            var task = (Task)method!.Invoke(_service, new object[] { framesDir, zipPath, CancellationToken.None })!;
+            await task;
+
+            File.Exists(zipPath).Should().BeTrue();
+            new FileInfo(zipPath).Length.Should().BeGreaterThan(0);
+        }
+        finally { CleanupDir(tempDir); }
+    }
+
+    [Fact]
+    public async Task ExtractFramesAsync_WithInvalidMedia_ShouldThrowInvalidOperationException()
+    {
+        SetFfmpegDownloaded(true);
+        var method = typeof(FFmpegVideoProcessingService)
+            .GetMethod("ExtractFramesAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+        method.Should().NotBeNull();
+
+        var tempDir = CreateTempOutputDir();
+        var fakeVideo = Path.Combine(tempDir, "fake.mp4");
+        await File.WriteAllTextAsync(fakeVideo, "not a video");
+        try
+        {
+            var task = (Task<int>)method!.Invoke(_service,
+                new object[] { fakeVideo, tempDir, 1, CancellationToken.None })!;
+
+            Func<Task> act = async () => await task;
+            await act.Should().ThrowAsync<InvalidOperationException>();
+        }
+        finally { CleanupDir(tempDir); }
     }
 }
