@@ -19,7 +19,8 @@ public class TelegramNotificationService : ITelegramNotificationService
 
     public TelegramNotificationService(
         IConfiguration configuration,
-        ILogger<TelegramNotificationService> logger)
+        ILogger<TelegramNotificationService> logger,
+        ITelegramBotClient? botClient = null)
     {
         _logger = logger;
         _enabled = configuration.GetValue<bool>("Telegram:Enabled");
@@ -28,7 +29,13 @@ public class TelegramNotificationService : ITelegramNotificationService
         var chatIdStr = configuration["Telegram:ChatId"];
         _chatId = !string.IsNullOrEmpty(chatIdStr) ? long.Parse(chatIdStr) : 0;
 
-        // Só instanciar o cliente se estiver habilitado e configurado
+        if (botClient is not null && _enabled && !string.IsNullOrEmpty(_botToken) && _chatId != 0)
+        {
+            _botClient = botClient;
+            _logger.LogInformation("Telegram Bot inicializado com sucesso. ChatId: {ChatId}", _chatId);
+            return;
+        }
+
         if (_enabled && !string.IsNullOrEmpty(_botToken) && _chatId != 0)
         {
             try
@@ -39,7 +46,7 @@ public class TelegramNotificationService : ITelegramNotificationService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao inicializar Telegram Bot");
-                _enabled = false; // Desabilita se falhar ao inicializar
+                _enabled = false;
             }
         }
         else
@@ -86,7 +93,6 @@ public class TelegramNotificationService : ITelegramNotificationService
         }
         catch (Exception ex)
         {
-            // NÃO quebrar o fluxo se Telegram falhar
             _logger.LogError(ex, "Erro ao enviar notificação de sucesso para Telegram. VideoId: {VideoId}", videoId);
         }
     }
@@ -127,7 +133,6 @@ public class TelegramNotificationService : ITelegramNotificationService
         }
         catch (Exception ex)
         {
-            // NÃO quebrar o fluxo se Telegram falhar
             _logger.LogError(ex, "Erro ao enviar notificação de erro para Telegram. VideoId: {VideoId}", videoId);
         }
     }

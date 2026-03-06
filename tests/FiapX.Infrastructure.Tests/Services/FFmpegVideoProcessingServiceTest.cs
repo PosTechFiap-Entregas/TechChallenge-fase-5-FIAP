@@ -71,6 +71,68 @@ public class FFmpegVideoProcessingServiceTests
     }
 
     [Fact]
+    public async Task CreateZipFromFramesAsync_ShouldCreateZipFile()
+    {
+        // Arrange
+        var serviceType = typeof(FFmpegVideoProcessingService);
+        var method = serviceType.GetMethod("CreateZipFromFramesAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        method.Should().NotBeNull();
+
+        var tempDir = CreateTempOutputDir();
+        var framesDir = Path.Combine(tempDir, "frames_test");
+        Directory.CreateDirectory(framesDir);
+
+        // create some dummy frame files
+        for (int i = 0; i < 3; i++)
+        {
+            await File.WriteAllTextAsync(Path.Combine(framesDir, $"frame_{i}.png"), "data");
+        }
+
+        var zipPath = Path.Combine(tempDir, "frames.zip");
+
+        try
+        {
+            var instance = _service;
+            var task = (Task)method!.Invoke(instance, new object[] { framesDir, zipPath, CancellationToken.None })!;
+            await task;
+
+            File.Exists(zipPath).Should().BeTrue();
+        }
+        finally
+        {
+            CleanupDir(tempDir);
+        }
+    }
+
+    [Fact]
+    public void ExtractFramesAsync_WithInvalidMedia_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var serviceType = typeof(FFmpegVideoProcessingService);
+        var method = serviceType.GetMethod("ExtractFramesAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        method.Should().NotBeNull();
+
+        var tempDir = CreateTempOutputDir();
+        var fakeVideo = Path.Combine(tempDir, "fake.mp4");
+        File.WriteAllText(fakeVideo, "not a video");
+
+        try
+        {
+            var instance = _service;
+            var act = () => (Task<int>)method!.Invoke(instance, new object[] { fakeVideo, tempDir, 1, CancellationToken.None })!;
+
+            // Invocation will throw when awaited, so get the task and assert
+            var task = act();
+            Func<Task> awaitTask = async () => { await task; };
+            awaitTask.Should().ThrowAsync<InvalidOperationException>().GetAwaiter().GetResult();
+        }
+        finally
+        {
+            CleanupDir(tempDir);
+        }
+    }
+
+    [Fact]
     public async Task ProcessVideoAsync_WhenVideoFileDoesNotExist_FrameCountShouldBeZero()
     {
         var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
@@ -354,6 +416,37 @@ public class FFmpegVideoProcessingServiceTests
         finally
         {
             CleanupFile(tempFile);
+            CleanupDir(outputDir);
+        }
+    }
+
+    [Fact]
+    public async Task ProcessVideoAsync_WhenFFmpegExecutableExists_ShouldSkipDownloadBranch()
+    {
+        var ffmpegType = typeof(FFmpegVideoProcessingService);
+        var downloadedField = ffmpegType.GetField("_ffmpegDownloaded", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        downloadedField?.SetValue(null, false);
+
+        var ffmpegPath = Path.Combine(Path.GetTempPath(), "ffmpeg");
+        Directory.CreateDirectory(ffmpegPath);
+        var ffmpegExecutable = Path.Combine(ffmpegPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
+        await File.WriteAllTextAsync(ffmpegExecutable, "fake");
+
+        var nonExistentPath = Path.Combine(Path.GetTempPath(), "missing_ffmpeg_test_" + Guid.NewGuid() + ".mp4");
+        var outputDir = CreateTempOutputDir();
+
+        try
+        {
+            var result = await _service.ProcessVideoAsync(nonExistentPath, outputDir);
+
+            result.Should().NotBeNull();
+            result.Success.Should().BeFalse();
+            result.ErrorMessage.Should().Contain("não encontrado");
+        }
+        finally
+        {
+            try { File.Delete(ffmpegExecutable); } catch { }
+            try { Directory.Delete(ffmpegPath, true); } catch { }
             CleanupDir(outputDir);
         }
     }

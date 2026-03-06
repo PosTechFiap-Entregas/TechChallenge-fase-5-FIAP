@@ -1,6 +1,7 @@
 ﻿using FiapX.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
+using System.Linq;
 
 namespace FiapX.Infrastructure.Tests.Services;
 
@@ -28,15 +29,12 @@ public class LocalStorageServiceTests : IDisposable
     [Fact]
     public async Task SaveVideoAsync_WithValidStream_ShouldSaveFile()
     {
-        // Arrange
         var content = "test video content"u8.ToArray();
         var stream = new MemoryStream(content);
         var fileName = "test-video.mp4";
 
-        // Act
         var filePath = await _sut.SaveVideoAsync(stream, fileName);
 
-        // Assert
         filePath.Should().NotBeNullOrEmpty();
         File.Exists(filePath).Should().BeTrue();
 
@@ -47,15 +45,12 @@ public class LocalStorageServiceTests : IDisposable
     [Fact]
     public async Task SaveZipAsync_WithValidStream_ShouldSaveFile()
     {
-        // Arrange
         var content = "test zip content"u8.ToArray();
         var stream = new MemoryStream(content);
         var fileName = "frames.zip";
 
-        // Act
         var filePath = await _sut.SaveZipAsync(stream, fileName);
 
-        // Assert
         filePath.Should().NotBeNullOrEmpty();
         File.Exists(filePath).Should().BeTrue();
     }
@@ -63,15 +58,12 @@ public class LocalStorageServiceTests : IDisposable
     [Fact]
     public async Task GetFileAsync_WithExistingFile_ShouldReturnStream()
     {
-        // Arrange
         var content = "test content"u8.ToArray();
         var stream = new MemoryStream(content);
         var filePath = await _sut.SaveVideoAsync(stream, "test.mp4");
 
-        // Act
         var resultStream = await _sut.GetFileAsync(filePath);
 
-        // Assert
         resultStream.Should().NotBeNull();
 
         using var ms = new MemoryStream();
@@ -82,71 +74,104 @@ public class LocalStorageServiceTests : IDisposable
     [Fact]
     public async Task GetFileAsync_WithNonExistentFile_ShouldThrowException()
     {
-        // Arrange
         var nonExistentPath = Path.Combine(_testBasePath, "non-existent.mp4");
 
-        // Act
         var act = () => _sut.GetFileAsync(nonExistentPath);
 
-        // Assert
         await act.Should().ThrowAsync<FileNotFoundException>();
     }
 
     [Fact]
     public async Task DeleteFileAsync_WithExistingFile_ShouldDeleteFile()
     {
-        // Arrange
         var stream = new MemoryStream("content"u8.ToArray());
         var filePath = await _sut.SaveVideoAsync(stream, "to-delete.mp4");
         File.Exists(filePath).Should().BeTrue();
 
-        // Act
         await _sut.DeleteFileAsync(filePath);
 
-        // Assert
         File.Exists(filePath).Should().BeFalse();
     }
 
     [Fact]
     public async Task FileExistsAsync_WithExistingFile_ShouldReturnTrue()
     {
-        // Arrange
         var stream = new MemoryStream("content"u8.ToArray());
         var filePath = await _sut.SaveVideoAsync(stream, "exists.mp4");
 
-        // Act
         var exists = await _sut.FileExistsAsync(filePath);
 
-        // Assert
         exists.Should().BeTrue();
     }
 
     [Fact]
     public async Task GetFileSizeAsync_ShouldReturnCorrectSize()
     {
-        // Arrange
         var content = "test content with specific size"u8.ToArray();
         var stream = new MemoryStream(content);
         var filePath = await _sut.SaveVideoAsync(stream, "sized.mp4");
 
-        // Act
         var size = await _sut.GetFileSizeAsync(filePath);
 
-        // Assert
         size.Should().Be(content.Length);
     }
 
     [Fact]
     public void GetTempDirectory_ShouldCreateUniqueDirectory()
     {
-        // Act
         var tempDir1 = _sut.GetTempDirectory();
         var tempDir2 = _sut.GetTempDirectory();
 
-        // Assert
         tempDir1.Should().NotBe(tempDir2);
         Directory.Exists(tempDir1).Should().BeTrue();
         Directory.Exists(tempDir2).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SaveVideoAsync_WithInvalidFileName_ShouldSanitizeFileName()
+    {
+        var content = "video"u8.ToArray();
+        var stream = new MemoryStream(content);
+        var invalidName = "inva|id:na*me?.mp4";
+
+        var path = await _sut.SaveVideoAsync(stream, invalidName);
+
+        path.Should().NotBeNullOrEmpty();
+        var fileName = Path.GetFileName(path);
+        fileName.Should().NotContainAny(Path.GetInvalidFileNameChars().Select(c => c.ToString()).ToArray());
+        fileName.Should().Contain("_");
+        File.Exists(path).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CleanupTempFilesAsync_ShouldRemoveOldDirectories()
+    {
+        var tempRoot = Path.Combine(_testBasePath, "temp");
+        Directory.CreateDirectory(tempRoot);
+
+        var oldDir = Path.Combine(tempRoot, Guid.NewGuid().ToString());
+        Directory.CreateDirectory(oldDir);
+
+        Directory.SetCreationTimeUtc(oldDir, DateTime.UtcNow.AddHours(-3));
+
+        var recentDir = Path.Combine(tempRoot, Guid.NewGuid().ToString());
+        Directory.CreateDirectory(recentDir);
+        Directory.SetCreationTimeUtc(recentDir, DateTime.UtcNow);
+
+        await _sut.CleanupTempFilesAsync();
+
+        Directory.Exists(oldDir).Should().BeFalse();
+        Directory.Exists(recentDir).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetFileSizeAsync_NonExistentFile_ShouldThrow()
+    {
+        var nonExistent = Path.Combine(_testBasePath, "does-not-exist.mp4");
+
+        var act = () => _sut.GetFileSizeAsync(nonExistent);
+
+        await act.Should().ThrowAsync<FileNotFoundException>();
     }
 
     public void Dispose()
@@ -159,7 +184,7 @@ public class LocalStorageServiceTests : IDisposable
             }
             catch
             {
-                // Ignore cleanup errors
+               
             }
         }
     }
