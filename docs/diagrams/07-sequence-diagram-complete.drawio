@@ -1,0 +1,181 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36" version="29.6.1">
+  <diagram id="sequence" name="SEQUENCE - UPLOAD TO DOWNLOAD">
+    <mxGraphModel dx="2066" dy="875" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="titulo" parent="1" style="text;fontSize=28;fontStyle=1;fillColor=none;strokeColor=none;" value="📊 DIAGRAMA DE SEQUÊNCIA - Upload → Process → Download" vertex="1">
+          <mxGeometry height="50" width="1600" x="300" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="user-life" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;fillColor=#8b5cf6;strokeColor=#6d28d9;strokeWidth=2;fontSize=13;fontStyle=1;" value="👤&#xa;Usuário" vertex="1">
+          <mxGeometry height="1100" width="100" x="100" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="api-life" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;fillColor=#3b82f6;strokeColor=#1d4ed8;strokeWidth=2;fontSize=13;fontStyle=1;" value="🌐&#xa;API" vertex="1">
+          <mxGeometry height="1100" width="100" x="300" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="db-life" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;fillColor=#16a34a;strokeColor=#15803d;strokeWidth=2;fontSize=13;fontStyle=1;" value="🐘&#xa;PostgreSQL" vertex="1">
+          <mxGeometry height="1100" width="100" x="500" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="mq-life" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;fillColor=#f59e0b;strokeColor=#d97706;strokeWidth=2;fontSize=13;fontStyle=1;" value="🐰&#xa;RabbitMQ" vertex="1">
+          <mxGeometry height="1100" width="100" x="700" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="worker-life" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;fillColor=#3b82f6;strokeColor=#1d4ed8;strokeWidth=2;fontSize=13;fontStyle=1;" value="⚙️&#xa;Worker" vertex="1">
+          <mxGeometry height="1100" width="100" x="900" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="ffmpeg-life" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;fillColor=#ec4899;strokeColor=#db2777;strokeWidth=2;fontSize=13;fontStyle=1;" value="🎬&#xa;FFmpeg" vertex="1">
+          <mxGeometry height="1100" width="100" x="1100" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="storage-life" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;fillColor=#6366f1;strokeColor=#4f46e5;strokeWidth=2;fontSize=13;fontStyle=1;" value="💾&#xa;Storage" vertex="1">
+          <mxGeometry height="1100" width="100" x="1300" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="phase1" parent="1" style="rounded=0;fillColor=#fef3c7;strokeColor=#f59e0b;strokeWidth=2;fontSize=14;fontStyle=1;fontColor=#666666;" value="FASE 1: UPLOAD" vertex="1">
+          <mxGeometry height="30" width="150" x="50" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" edge="1" parent="1" source="user-life" style="endArrow=classic;strokeWidth=2;strokeColor=#3b82f6;fontSize=11;" target="api-life" value="1. POST /api/videos/upload">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="150" y="320" as="sourcePoint" />
+            <mxPoint x="350" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s2" parent="1" style="rounded=1;fillColor=#fbbf24;strokeWidth=1;fontSize=10;align=center;" value="2. Validar (tamanho, formato)" vertex="1">
+          <mxGeometry height="40" width="140" x="300" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#6366f1;fontSize=11;" value="3. Salvar arquivo">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="410" as="sourcePoint" />
+            <mxPoint x="1350" y="410" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s4" edge="1" parent="1" style="endArrow=none;dashed=1;strokeWidth=2;strokeColor=#6366f1;fontSize=11;startArrow=classic;startFill=1;" value="Path">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1350" y="440" as="sourcePoint" />
+            <mxPoint x="350" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s5" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#16a34a;fontSize=11;" value="4. INSERT Video (Uploaded)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="470" as="sourcePoint" />
+            <mxPoint x="550" y="470" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s6" edge="1" parent="1" style="endArrow=none;dashed=1;strokeWidth=2;strokeColor=#16a34a;fontSize=11;startArrow=classic;startFill=1;" value="Video ID">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="500" as="sourcePoint" />
+            <mxPoint x="350" y="500" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s7" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#16a34a;fontSize=11;" value="5. UPDATE status=Queued">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="530" as="sourcePoint" />
+            <mxPoint x="550" y="530" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s8" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#f59e0b;fontSize=11;" value="6. Publish VideoUploadedEvent">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="560" as="sourcePoint" />
+            <mxPoint x="750" y="560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s9" edge="1" parent="1" style="endArrow=none;dashed=1;strokeWidth=2;strokeColor=#3b82f6;fontSize=11;startArrow=classic;startFill=1;" value="7. 202 Accepted + Video ID">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="590" as="sourcePoint" />
+            <mxPoint x="150" y="590" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="phase2" parent="1" style="rounded=0;fillColor=#dcfce7;strokeColor=#16a34a;strokeWidth=2;fontSize=14;fontStyle=1;fontColor=#666666;" value="FASE 2: PROCESSAMENTO" vertex="1">
+          <mxGeometry height="30" width="200" x="50" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="s10" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#f59e0b;fontSize=11;" value="8. Consume Event">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="680" as="sourcePoint" />
+            <mxPoint x="950" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s11" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#16a34a;fontSize=11;" value="9. UPDATE status=Processing">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="950" y="710" as="sourcePoint" />
+            <mxPoint x="550" y="710" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s12" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#6366f1;fontSize=11;" value="10. Ler vídeo original">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="950" y="740" as="sourcePoint" />
+            <mxPoint x="1350" y="740" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s13" edge="1" parent="1" style="endArrow=none;dashed=1;strokeWidth=2;strokeColor=#6366f1;fontSize=11;startArrow=classic;startFill=1;" value="Stream">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1350" y="770" as="sourcePoint" />
+            <mxPoint x="950" y="770" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s14" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#ec4899;fontSize=11;" value="11. Processar (1 FPS)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="950" y="800" as="sourcePoint" />
+            <mxPoint x="1150" y="800" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s15" parent="1" style="rounded=1;fillColor=#ec4899;strokeWidth=1;fontSize=10;align=center;" value="" vertex="1">
+          <mxGeometry height="60" width="100" x="1100" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="s15-label" parent="1" style="text;fontSize=10;fontColor=#fff;fontStyle=1;" value="Extrair&#xa;Frames" vertex="1">
+          <mxGeometry height="30" width="80" x="1110" y="835" as="geometry" />
+        </mxCell>
+        <mxCell id="s16" edge="1" parent="1" style="endArrow=none;dashed=1;strokeWidth=2;strokeColor=#ec4899;fontSize=11;startArrow=classic;startFill=1;" value="Frames[]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1150" y="900" as="sourcePoint" />
+            <mxPoint x="950" y="900" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s17" parent="1" style="rounded=1;fillColor=#6366f1;strokeWidth=1;fontSize=10;fontColor=#fff;align=center;" value="12. Criar ZIP" vertex="1">
+          <mxGeometry height="40" width="100" x="900" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="s18" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#6366f1;fontSize=11;" value="13. Salvar ZIP">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="950" y="980" as="sourcePoint" />
+            <mxPoint x="1350" y="980" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s19" edge="1" parent="1" style="endArrow=none;dashed=1;strokeWidth=2;strokeColor=#6366f1;fontSize=11;startArrow=classic;startFill=1;" value="Path ZIP">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1350" y="1010" as="sourcePoint" />
+            <mxPoint x="950" y="1010" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s20" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#16a34a;fontSize=11;" value="14. UPDATE (Completed, zipPath, frameCount)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="950" y="1040" as="sourcePoint" />
+            <mxPoint x="550" y="1040" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="phase3" parent="1" style="rounded=0;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=2;fontSize=14;fontStyle=1;fontColor=#666666;" value="FASE 3: DOWNLOAD" vertex="1">
+          <mxGeometry height="30" width="180" x="50" y="1090" as="geometry" />
+        </mxCell>
+        <mxCell id="s21" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#3b82f6;fontSize=11;" value="15. GET /videos/{id}/status">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="150" y="1130" as="sourcePoint" />
+            <mxPoint x="350" y="1130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s22" edge="1" parent="1" style="endArrow=classic;strokeWidth=2;strokeColor=#16a34a;fontSize=11;" value="16. SELECT Video">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="1160" as="sourcePoint" />
+            <mxPoint x="550" y="1160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s23" edge="1" parent="1" style="endArrow=none;dashed=1;strokeWidth=2;strokeColor=#16a34a;fontSize=11;startArrow=classic;startFill=1;" value="Video">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="1190" as="sourcePoint" />
+            <mxPoint x="350" y="1190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s24" edge="1" parent="1" style="endArrow=none;dashed=1;strokeWidth=2;strokeColor=#3b82f6;fontSize=11;startArrow=classic;startFill=1;" value="17. 200 OK (Completed)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="1220" as="sourcePoint" />
+            <mxPoint x="150" y="1220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
