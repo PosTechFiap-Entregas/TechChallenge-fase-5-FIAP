@@ -12,6 +12,12 @@ permissions:
 
 env:
   DOTNET_VERSION: '8.0.x'
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: fiapx-cluster
+  ECS_SERVICE: fiapx-api
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+  SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
 
 jobs:
   build-and-test:
@@ -28,13 +34,32 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 🔍 Instalar SonarScanner
+      run: |
+        dotnet tool install --global dotnet-sonarscanner
+        echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
     
     - name: 📦 Restaurar dependências
       run: dotnet restore TechChallenge-Fase5.slnx
-    
+
+    - name: 🔍 Iniciar análise Sonar
+      # env:
+      #   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+      #   SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+      run: |
+        dotnet sonarscanner begin \
+          /k:"${{ env.SONAR_PROJECT_KEY }}" \
+          /o:"${{ env.SONAR_ORGANIZATION }}" \
+          /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.login="${{ env.SONAR_TOKEN }}" \
+          /d:sonar.cs.opencover.reportsPaths="**/coverage/coverage.opencover.xml" \
+          /d:sonar.branch.name="${{ github.ref_name }}"
+
     - name: 🏗️ Build do projeto (Release)
       run: dotnet build TechChallenge-Fase5.slnx --configuration Release --no-restore
-    
+
     - name: 🧪 Executar testes com cobertura
       run: |
         dotnet test TechChallenge-Fase5.slnx \
@@ -46,7 +71,18 @@ jobs:
           /p:CoverletOutputFormat=opencover \
           /p:CoverletOutput=./coverage/ \
           /p:Exclude="[*.Tests]*"
-    
+
+    - name: 🔍 Finalizar análise Sonar
+      run: |
+        dotnet sonarscanner end \
+          /d:sonar.login="${{ env.SONAR_TOKEN }}"
+
+    - name: ⛔ Verificar Quality Gate
+      uses: sonarsource/sonarqube-quality-gate-action@v1
+      timeout-minutes: 5
+      env:
+        SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+
     - name: 📊 Listar arquivos de cobertura gerados
       if: always()
       run: |
@@ -106,6 +142,17 @@ jobs:
     steps:
     - name: 📥 Checkout do código
       uses: actions/checkout@v4
+        
+    - name: 🔐 Configurar credenciais AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: 🔐 Login no ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
     
     - name: 🐳 Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -122,6 +169,26 @@ jobs:
         docker build -f src/FiapX.Worker/Dockerfile -t fiapx-worker:latest .
         echo "✅ Worker image criada!"
     
+    - name: 🏷️ Tag API image para ECR
+      run: |
+        docker tag fiapx-api:latest \
+        ${{ steps.login-ecr.outputs.registry }}/fiapx-api:latest
+
+    - name: 🏷️ Tag Worker image para ECR
+      run: |
+        docker tag fiapx-worker:latest \
+        ${{ steps.login-ecr.outputs.registry }}/fiapx-worker:latest
+        
+    - name: 📤 Push API image
+      run: |
+        docker push \
+        ${{ steps.login-ecr.outputs.registry }}/fiapx-api:latest
+
+    - name: 📤 Push Worker image
+      run: |
+        docker push \
+        ${{ steps.login-ecr.outputs.registry }}/fiapx-worker:latest
+
     - name: 🧪 Validar docker-compose
       run: |
         cat > .env << EOF
@@ -161,10 +228,31 @@ jobs:
         echo "📁 Arquivos .cs: $(find . -name "*.cs" | wc -l)"
         echo "═══════════════════════════════════════════════════════════"
 
+  deploy:
+    name: Deploy ECS
+    runs-on: ubuntu-latest
+    needs: docker-build
+
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Forçar novo deploy ECS
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --force-new-deployment
+
   summary:
     name: Resumo
     runs-on: ubuntu-latest
-    needs: [build-and-test, docker-build, code-quality]
+    needs: [build-and-test, docker-build, code-quality, deploy]
     if: always()
     
     steps:
@@ -176,6 +264,7 @@ jobs:
         echo "✅ Build/Testes: ${{ needs.build-and-test.result }}"
         echo "🐳 Docker: ${{ needs.docker-build.result }}"
         echo "📊 Quality: ${{ needs.code-quality.result }}"
+        echo "📊 Deploy: ${{ needs.deploy.result }}"
         echo "═══════════════════════════════════════════════════════════"
         
         if [ "${{ needs.build-and-test.result }}" == "success" ]; then
