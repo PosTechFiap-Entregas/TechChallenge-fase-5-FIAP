@@ -78,7 +78,7 @@ jobs:
           /d:sonar.login="${{ env.SONAR_TOKEN }}"
 
     - name: ⛔ Verificar Quality Gate
-      uses: sonarsource/sonarqube-quality-gate-action@v1
+      uses: sonarsource/sonarqube-quality-gate-action@master
       timeout-minutes: 5
       env:
         SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
