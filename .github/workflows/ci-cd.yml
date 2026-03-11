@@ -44,16 +44,16 @@ jobs:
       run: dotnet restore TechChallenge-Fase5.slnx
 
     - name: 🔍 Iniciar análise Sonar
-      # env:
-      #   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      #   SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-      #   SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
       run: |
         dotnet sonarscanner begin \
-          /k:"${{ env.SONAR_PROJECT_KEY }}" \
-          /o:"${{ env.SONAR_ORGANIZATION }}" \
+          /k:"$SONAR_PROJECT_KEY" \
+          /o:"$SONAR_ORGANIZATION" \
           /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.login="${{ env.SONAR_TOKEN }}" \
+          /d:sonar.login="$SONAR_TOKEN" \
           /d:sonar.cs.opencover.reportsPaths="**/coverage/coverage.opencover.xml" \
           /d:sonar.branch.name="${{ github.ref_name }}"
 
