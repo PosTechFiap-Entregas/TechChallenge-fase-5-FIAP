@@ -57,8 +57,11 @@ jobs:
     #       /d:sonar.cs.opencover.reportsPaths="**/coverage/coverage.opencover.xml" \
     #       /d:sonar.branch.name="${{ github.ref_name }}"
 
-    - name: 🏗️ Build do projeto (Release)
-      run: dotnet build TechChallenge-Fase5.slnx --configuration Release --no-restore
+    - name: 🏗️ Build do projeto (Release) e análise Sonar
+      run: |
+        ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"${{ env.SONAR_PROJECT_KEY }}" /o:"${{ env.SONAR_ORGANIZATION }}" /d:sonar.token="${{ env.SONAR_TOKEN }}"
+        dotnet build TechChallenge-Fase5.slnx --configuration Release --no-restore
+        ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ env.SONAR_TOKEN }}"
 
     - name: 🧪 Executar testes com cobertura
       run: |
