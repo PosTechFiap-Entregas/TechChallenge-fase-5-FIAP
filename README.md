@@ -1062,11 +1062,13 @@ Use case: Vídeos maiores, FFmpeg mais rápido
 
 ## 👥 Equipe
 
-**Desenvolvido por:** Wesley Gynther  
+**Desenvolvimento:** Wesley Ferreira da Silva  
+**Documentação:** Raíssa Soares Cesar  
+**Infraestrutura:** Jaci Teixeira Santos  
 **Instituição:** FIAP - Faculdade de Informática e Administração Paulista  
 **Curso:** Pós-Graduação em Arquitetura de Software  
 **Fase:** 5 - TechChallenge Final  
-**Período:** 2024
+**Período:** 2025
 
 **Repositório:** https://github.com/wesleygyn/TechChallenge-fase-5-FIAP  
 **Codecov:** https://codecov.io/gh/wesleygyn/TechChallenge-fase-5-FIAP
