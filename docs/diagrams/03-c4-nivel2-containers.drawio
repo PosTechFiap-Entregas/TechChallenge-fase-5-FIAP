@@ -1,0 +1,76 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36" version="29.6.1">
+  <diagram id="c4-containers" name="C4 - CONTAINERS">
+    <mxGraphModel dx="2066" dy="875" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="titulo" parent="1" style="text;fontSize=32;fontStyle=1;fillColor=none;strokeColor=none;" value="📦 C4 - NÍVEL 2: CONTAINERS" vertex="1">
+          <mxGeometry height="60" width="1200" x="600" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary" parent="1" style="rounded=1;dashed=1;dashPattern=8 8;strokeWidth=3;strokeColor=#3b82f6;fillColor=#eff6ff;fontSize=20;fontStyle=1;align=center;verticalAlign=top;fontColor=#FFFFFF;labelBackgroundColor=#3399FF;" value="Sistema FiapX" vertex="1">
+          <mxGeometry height="900" width="1640" x="590" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="user" parent="1" style="shape=umlActor;fillColor=#8b5cf6;strokeWidth=3;fontSize=16;labelBackgroundColor=#6666FF;" value="👤 Usuário" vertex="1">
+          <mxGeometry height="120" width="60" x="430" y="563" as="geometry" />
+        </mxCell>
+        <mxCell id="api" parent="1" style="rounded=1;fillColor=#3b82f6;strokeColor=#1d4ed8;strokeWidth=3;fontColor=#fff;fontSize=14;align=center;" value="🌐 API REST&#xa;[ASP.NET Core 8]&#xa;&#xa;• Controllers REST&#xa;• JWT Auth&#xa;• Upload/Download" vertex="1">
+          <mxGeometry height="150" width="300" x="730" y="268" as="geometry" />
+        </mxCell>
+        <mxCell id="worker" parent="1" style="rounded=1;fillColor=#3b82f6;strokeColor=#1d4ed8;strokeWidth=3;fontColor=#fff;fontSize=14;align=center;" value="⚙️ Worker Service&#xa;[.NET 8 Background]&#xa;&#xa;• Consome fila&#xa;• FFmpeg processing&#xa;• Retry + Circuit Breaker" vertex="1">
+          <mxGeometry height="150" width="300" x="730" y="783" as="geometry" />
+        </mxCell>
+        <mxCell id="postgres" parent="1" style="shape=cylinder3;fillColor=#16a34a;strokeColor=#15803d;strokeWidth=3;fontColor=#fff;fontSize=14;size=15;" value="🐘 PostgreSQL&#xa;[PostgreSQL 16]&#xa;&#xa;Metadados de&#xa;usuários e vídeos" vertex="1">
+          <mxGeometry height="150" width="180" x="1005" y="478" as="geometry" />
+        </mxCell>
+        <mxCell id="redis" parent="1" style="ellipse;fillColor=#dc2626;strokeColor=#b91c1c;strokeWidth=3;fontColor=#fff;fontSize=14;" value="⚡ Redis Cache&#xa;[Redis 7]&#xa;&#xa;Cache de status&#xa;TTL: 5min" vertex="1">
+          <mxGeometry height="150" width="180" x="790" y="533" as="geometry" />
+        </mxCell>
+        <mxCell id="rabbitmq" parent="1" style="shape=trapezoid;fillColor=#f59e0b;strokeColor=#d97706;strokeWidth=3;fontColor=#fff;fontSize=14;perimeter=trapezoidPerimeter;" value="🐰 RabbitMQ&#xa;[RabbitMQ 3.13]&#xa;&#xa;Fila de eventos&#xa;At-least-once&#xa;Retry policies" vertex="1">
+          <mxGeometry height="150" width="220" x="1360" y="368" as="geometry" />
+        </mxCell>
+        <mxCell id="storage" parent="1" style="shape=cylinder3;fillColor=#6366f1;strokeColor=#4f46e5;strokeWidth=3;fontColor=#fff;fontSize=14;size=15;" value="💾 Local Storage&#xa;[File System]&#xa;&#xa;Vídeos originais&#xa;Arquivos ZIP" vertex="1">
+          <mxGeometry height="150" width="220" x="1580" y="593" as="geometry" />
+        </mxCell>
+        <mxCell id="seq" parent="1" style="shape=note;fillColor=#7c3aed;strokeColor=#6d28d9;strokeWidth=3;fontColor=#fff;fontSize=14;size=20;" value="📊 Seq&#xa;[Logs]&#xa;&#xa;Serilog&#xa;Structured logs" vertex="1">
+          <mxGeometry height="150" width="180" x="1920" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="telegram" parent="1" style="rounded=1;dashed=1;dashPattern=8 8;fillColor=#94a3b8;strokeColor=#64748b;strokeWidth=3;fontColor=#fff;fontSize=14;" value="📱 Telegram&#xa;&#xa;Notificações&#xa;(opcional)" vertex="1">
+          <mxGeometry height="120" width="180" x="1920" y="803" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" edge="1" parent="1" source="user" style="endArrow=classic;strokeWidth=3;strokeColor=#3b82f6;fontSize=12;" target="api" value="HTTPS/REST">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" edge="1" parent="1" source="api" style="endArrow=classic;startArrow=classic;strokeWidth=3;strokeColor=#16a34a;fontSize=12;" target="postgres" value="TCP/SQL">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" edge="1" parent="1" source="api" style="endArrow=classic;startArrow=classic;strokeWidth=3;strokeColor=#dc2626;fontSize=12;" target="redis" value="Redis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" edge="1" parent="1" source="api" style="endArrow=classic;strokeWidth=3;strokeColor=#f59e0b;fontSize=12;" target="rabbitmq" value="Publish">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" edge="1" parent="1" source="api" style="endArrow=classic;strokeWidth=3;strokeColor=#6366f1;fontSize=12;" target="storage" value="File I/O">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a6" edge="1" parent="1" source="rabbitmq" style="endArrow=classic;strokeWidth=3;strokeColor=#f59e0b;fontSize=12;" target="worker" value="Consume">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a7" edge="1" parent="1" source="worker" style="endArrow=classic;strokeWidth=3;strokeColor=#16a34a;fontSize=12;" target="postgres" value="Update">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a8" edge="1" parent="1" source="worker" style="endArrow=classic;strokeWidth=3;strokeColor=#6366f1;fontSize=12;" target="storage" value="Read/Write">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a9" edge="1" parent="1" source="api" style="endArrow=classic;strokeWidth=2;strokeColor=#7c3aed;dashed=1;fontSize=11;" target="seq" value="Logs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a10" edge="1" parent="1" source="worker" style="endArrow=classic;strokeWidth=2;strokeColor=#7c3aed;dashed=1;fontSize=11;" target="seq" value="Logs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a11" edge="1" parent="1" source="worker" style="endArrow=classic;strokeWidth=2;strokeColor=#94a3b8;dashed=1;fontSize=11;" target="telegram" value="Notify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

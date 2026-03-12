@@ -1,0 +1,79 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36" version="29.6.1">
+  <diagram name="Página-1" id="vgeOJgt8X4Am1BfuZjok">
+    <mxGraphModel dx="2066" dy="875" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-1" parent="1" style="text;fontSize=32;fontStyle=1;fillColor=none;strokeColor=none;" value="🔧 C4 - NÍVEL 3: COMPONENTES - API REST" vertex="1">
+          <mxGeometry height="60" width="1400" x="570" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-2" parent="1" style="rounded=1;dashed=1;dashPattern=8 8;strokeWidth=3;strokeColor=#3b82f6;fillColor=#dbeafe;fontSize=18;fontStyle=1;align=center;verticalAlign=top;labelBackgroundColor=#3333FF;" value="API REST Container" vertex="1">
+          <mxGeometry height="1080" width="1650" x="330" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-3" parent="1" style="shape=umlActor;fillColor=#8b5cf6;strokeWidth=3;fontSize=16;labelBackgroundColor=#6666FF;" value="👤 Usuário" vertex="1">
+          <mxGeometry height="100" width="50" x="190" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-4" parent="1" style="rounded=1;fillColor=#3b82f6;strokeColor=#1d4ed8;strokeWidth=2;fontColor=#fff;fontSize=13;" value="AuthController&#xa;&#xa;/api/auth/*" vertex="1">
+          <mxGeometry height="80" width="200" x="470" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-5" parent="1" style="rounded=1;fillColor=#3b82f6;strokeColor=#1d4ed8;strokeWidth=2;fontColor=#fff;fontSize=13;" value="VideosController&#xa;&#xa;/api/videos/*" vertex="1">
+          <mxGeometry height="80" width="200" x="470" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-6" parent="1" style="rounded=1;fillColor=#f59e0b;strokeColor=#d97706;strokeWidth=2;fontColor=#fff;fontSize=13;" value="Middleware&#xa;&#xa;GlobalExceptionHandler" vertex="1">
+          <mxGeometry height="80" width="200" x="470" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-7" parent="1" style="rounded=1;fillColor=#10b981;strokeColor=#059669;strokeWidth=2;fontColor=#fff;fontSize=12;" value="RegisterUserUseCase" vertex="1">
+          <mxGeometry height="60" width="180" x="820" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-8" parent="1" style="rounded=1;fillColor=#10b981;strokeColor=#059669;strokeWidth=2;fontColor=#fff;fontSize=12;" value="LoginUseCase" vertex="1">
+          <mxGeometry height="60" width="180" x="820" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-9" parent="1" style="rounded=1;fillColor=#10b981;strokeColor=#059669;strokeWidth=2;fontColor=#fff;fontSize=12;" value="UploadVideoUseCase" vertex="1">
+          <mxGeometry height="60" width="180" x="820" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-10" parent="1" style="rounded=1;fillColor=#10b981;strokeColor=#059669;strokeWidth=2;fontColor=#fff;fontSize=12;" value="GetVideoStatusUseCase" vertex="1">
+          <mxGeometry height="60" width="180" x="820" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-11" parent="1" style="rounded=1;fillColor=#10b981;strokeColor=#059669;strokeWidth=2;fontColor=#fff;fontSize=12;" value="DownloadVideoUseCase" vertex="1">
+          <mxGeometry height="60" width="180" x="820" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-12" parent="1" style="rounded=1;fillColor=#f59e0b;strokeColor=#d97706;strokeWidth=2;fontColor=#fff;fontSize=11;align=center;" value="FluentValidators&#xa;&#xa;• LoginRequestValidator&#xa;• RegisterRequestValidator&#xa;• UploadRequestValidator" vertex="1">
+          <mxGeometry height="120" width="180" x="820" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-13" parent="1" style="rounded=1;fillColor=#6366f1;strokeColor=#4f46e5;strokeWidth=2;fontColor=#fff;fontSize=12;" value="UnitOfWork" vertex="1">
+          <mxGeometry height="60" width="150" x="1150" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-14" parent="1" style="rounded=1;fillColor=#6366f1;strokeColor=#4f46e5;strokeWidth=2;fontColor=#fff;fontSize=12;" value="UserRepository" vertex="1">
+          <mxGeometry height="60" width="150" x="1150" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-15" parent="1" style="rounded=1;fillColor=#6366f1;strokeColor=#4f46e5;strokeWidth=2;fontColor=#fff;fontSize=12;" value="VideoRepository" vertex="1">
+          <mxGeometry height="60" width="150" x="1150" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-16" parent="1" style="rounded=1;fillColor=#ec4899;strokeColor=#db2777;strokeWidth=2;fontColor=#fff;fontSize=12;" value="JwtTokenService" vertex="1">
+          <mxGeometry height="60" width="150" x="1420" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-17" parent="1" style="rounded=1;fillColor=#ec4899;strokeColor=#db2777;strokeWidth=2;fontColor=#fff;fontSize=12;" value="LocalStorageService" vertex="1">
+          <mxGeometry height="60" width="150" x="1420" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-18" parent="1" style="rounded=1;fillColor=#ec4899;strokeColor=#db2777;strokeWidth=2;fontColor=#fff;fontSize=12;" value="MessagePublisher" vertex="1">
+          <mxGeometry height="60" width="150" x="1420" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-19" parent="1" style="rounded=1;fillColor=#ec4899;strokeColor=#db2777;strokeWidth=2;fontColor=#fff;fontSize=12;" value="RedisCacheService" vertex="1">
+          <mxGeometry height="60" width="150" x="1420" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-20" parent="1" style="shape=cylinder3;fillColor=#16a34a;strokeColor=#15803d;strokeWidth=2;fontColor=#fff;fontSize=13;size=10;" value="🐘 PostgreSQL" vertex="1">
+          <mxGeometry height="100" width="130" x="1720" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-21" parent="1" style="shape=trapezoid;fillColor=#f59e0b;strokeColor=#d97706;strokeWidth=2;fontColor=#fff;fontSize=13;perimeter=trapezoidPerimeter;" value="🐰 RabbitMQ" vertex="1">
+          <mxGeometry height="80" width="130" x="1720" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-22" parent="1" style="ellipse;fillColor=#dc2626;strokeColor=#b91c1c;strokeWidth=2;fontColor=#fff;fontSize=13;" value="⚡ Redis" vertex="1">
+          <mxGeometry height="80" width="130" x="1720" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="dFHMsrKkBkKe8jksqtr4-23" parent="1" style="shape=cylinder3;fillColor=#6366f1;strokeColor=#4f46e5;strokeWidth=2;fontColor=#fff;fontSize=13;size=10;" value="💾 Storage" vertex="1">
+          <mxGeometry height="100" width="130" x="1720" y="1060" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

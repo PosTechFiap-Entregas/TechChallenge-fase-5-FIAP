@@ -1,0 +1,55 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36" version="29.6.1">
+  <diagram name="Página-1" id="wc_gleLkLdfmbwt07MZb">
+    <mxGraphModel dx="2066" dy="875" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-1" parent="1" style="text;fontSize=28;fontStyle=1;fillColor=none;strokeColor=none;" value="🔧 C4 - NÍVEL 3: COMPONENTES - WORKER" vertex="1">
+          <mxGeometry height="50" width="1000" x="540" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-2" parent="1" style="rounded=1;dashed=1;dashPattern=8 8;strokeWidth=3;strokeColor=#3b82f6;fillColor=#dbeafe;fontSize=16;fontStyle=1;align=center;verticalAlign=top;labelBackgroundColor=#6666FF;" value="Worker Service Container" vertex="1">
+          <mxGeometry height="740" width="1210" x="350" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-3" parent="1" style="shape=trapezoid;fillColor=#f59e0b;strokeColor=#d97706;strokeWidth=3;fontColor=#fff;fontSize=14;perimeter=trapezoidPerimeter;" value="🐰 RabbitMQ" vertex="1">
+          <mxGeometry height="80" width="120" x="190" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-4" parent="1" style="rounded=1;fillColor=#3b82f6;strokeColor=#1d4ed8;strokeWidth=2;fontColor=#fff;fontSize=13;" value="VideoUploadedEvent&#xa;Consumer&#xa;&#xa;Consome eventos da fila" vertex="1">
+          <mxGeometry height="100" width="220" x="420" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-5" parent="1" style="rounded=1;fillColor=#f59e0b;strokeColor=#d97706;strokeWidth=2;fontColor=#fff;fontSize=11;align=center;" value="ConsumerDefinition&#xa;&#xa;• Retry: 3x&#xa;• Backoff: 1s→5s→15s&#xa;• Circuit Breaker" vertex="1">
+          <mxGeometry height="120" width="220" x="420" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-6" parent="1" style="rounded=1;fillColor=#10b981;strokeColor=#059669;strokeWidth=2;fontColor=#fff;fontSize=12;" value="VideoProcessingService&#xa;&#xa;Orquestra o processamento&#xa;completo do vídeo" vertex="1">
+          <mxGeometry height="100" width="220" x="740" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-7" parent="1" style="rounded=1;fillColor=#ec4899;strokeColor=#db2777;strokeWidth=2;fontColor=#fff;fontSize=11;align=center;" value="FFmpegVideoProcessing&#xa;Service&#xa;&#xa;• Extração de frames&#xa;• 1 FPS configurável&#xa;• Validação de formato" vertex="1">
+          <mxGeometry height="120" width="200" x="1060" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-8" parent="1" style="rounded=1;fillColor=#ec4899;strokeColor=#db2777;strokeWidth=2;fontColor=#fff;fontSize=11;align=center;" value="LocalStorageService&#xa;&#xa;• Lê vídeos originais&#xa;• Salva frames&#xa;• Cria ZIP" vertex="1">
+          <mxGeometry height="100" width="200" x="1060" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-9" parent="1" style="rounded=1;fillColor=#ec4899;strokeColor=#db2777;strokeWidth=2;fontColor=#fff;fontSize=11;align=center;" value="TelegramNotification&#xa;Service&#xa;&#xa;Envia notificações&#xa;(sucesso/erro)" vertex="1">
+          <mxGeometry height="100" width="200" x="1060" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-10" parent="1" style="rounded=1;fillColor=#6366f1;strokeColor=#4f46e5;strokeWidth=2;fontColor=#fff;fontSize=12;" value="VideoRepository&#xa;&#xa;Atualiza status e&#xa;metadados do vídeo" vertex="1">
+          <mxGeometry height="100" width="220" x="740" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-11" parent="1" style="rounded=1;fillColor=#7c3aed;strokeColor=#6d28d9;strokeWidth=2;fontColor=#fff;fontSize=12;" value="VideoMetricsService&#xa;&#xa;Registra métricas&#xa;Prometheus" vertex="1">
+          <mxGeometry height="100" width="220" x="740" y="810" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-12" parent="1" style="shape=cylinder3;fillColor=#16a34a;strokeColor=#15803d;strokeWidth=2;fontColor=#fff;fontSize=12;size=10;" value="🐘 PostgreSQL" vertex="1">
+          <mxGeometry height="80" width="120" x="1380" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-13" parent="1" style="shape=cylinder3;fillColor=#6366f1;strokeColor=#4f46e5;strokeWidth=2;fontColor=#fff;fontSize=12;size=10;" value="💾 File Storage" vertex="1">
+          <mxGeometry height="80" width="120" x="1370" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-14" parent="1" style="rounded=1;dashed=1;fillColor=#94a3b8;strokeColor=#64748b;strokeWidth=2;fontColor=#fff;fontSize=12;" value="📱 Telegram" vertex="1">
+          <mxGeometry height="60" width="120" x="1370" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="FmVxmsZbuyCnZgm8ktE0-15" parent="1" style="rounded=1;dashed=1;fillColor=#94a3b8;strokeColor=#64748b;strokeWidth=2;fontColor=#fff;fontSize=12;" value="⚙️ FFmpeg" vertex="1">
+          <mxGeometry height="60" width="120" x="1370" y="310" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
