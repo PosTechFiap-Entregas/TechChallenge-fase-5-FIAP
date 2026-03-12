@@ -55,7 +55,7 @@ jobs:
     - name: 🏗️ Build do projeto
       run: dotnet build TechChallenge-Fase5.slnx --configuration Release --no-restore
 
-    - name: 🧪 Executar testes com cobertura
+    - name: 🧪 Executar testes com cobertura 
       run: |
         dotnet test TechChallenge-Fase5.slnx \
           --configuration Release \
