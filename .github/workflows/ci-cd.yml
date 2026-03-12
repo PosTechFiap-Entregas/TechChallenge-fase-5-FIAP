@@ -178,20 +178,31 @@ jobs:
         docker push \
         ${{ steps.login-ecr.outputs.registry }}/fiapx-worker:latest
 
-    - name: 🧪 Validar docker-compose
+    - name: Criar .env para build
       run: |
-        cat > .env << EOF
-        TELEGRAM_ENABLED=false
-        TELEGRAM_BOT_TOKEN=test-token
-        TELEGRAM_CHAT_ID=12345
-        POSTGRES_DB=fiapx_db
-        POSTGRES_USER=fiapx_user
-        POSTGRES_PASSWORD=fiapx_pass_2024
-        RABBITMQ_DEFAULT_USER=fiapx
-        RABBITMQ_DEFAULT_PASS=fiapx_rabbit_2024
+        cat <<EOF > .env
+        POSTGRES_CONNECTION_STRING=${{ secrets.POSTGRES_CONNECTION_STRING }}
+        POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+        POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+    
+        REDIS_CONNECTION_STRING=${{ secrets.REDIS_CONNECTION_STRING }}
+    
+        RABBITMQ_HOST=${{ secrets.RABBITMQ_HOST }}
+        RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }}
+        RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
+        RABBITMQ_CONNECTION_STRING=${{ secrets.RABBITMQ_CONNECTION_STRING }}
+        RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_USERNAME }}
+        RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_PASSWORD }}
+    
+        JWT_SECRET=${{ secrets.JWT_SECRET }}
+    
+        TELEGRAM_ENABLED=${{ secrets.TELEGRAM_ENABLED }}
+        TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
         EOF
-        docker compose config > /dev/null
-        echo "✅ docker-compose.yml válido!"
+    - name: Validar docker-compose
+      run: docker compose config
 
   code-quality:
     name: Análise de Qualidade
