@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36" version="29.6.1">
   <diagram name="Página-1" id="wc_gleLkLdfmbwt07MZb">
-    <mxGraphModel dx="1747" dy="1147" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2066" dy="875" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -8,7 +8,7 @@
           <mxGeometry height="50" width="1000" x="540" y="140" as="geometry" />
         </mxCell>
         <mxCell id="FmVxmsZbuyCnZgm8ktE0-2" parent="1" style="rounded=1;dashed=1;dashPattern=8 8;strokeWidth=3;strokeColor=#3b82f6;fillColor=#dbeafe;fontSize=16;fontStyle=1;align=center;verticalAlign=top;labelBackgroundColor=#6666FF;" value="Worker Service Container" vertex="1">
-          <mxGeometry height="780" width="1260" x="340" y="230" as="geometry" />
+          <mxGeometry height="740" width="1210" x="350" y="230" as="geometry" />
         </mxCell>
         <mxCell id="FmVxmsZbuyCnZgm8ktE0-3" parent="1" style="shape=trapezoid;fillColor=#f59e0b;strokeColor=#d97706;strokeWidth=3;fontColor=#fff;fontSize=14;perimeter=trapezoidPerimeter;" value="🐰 RabbitMQ" vertex="1">
           <mxGeometry height="80" width="120" x="190" y="460" as="geometry" />

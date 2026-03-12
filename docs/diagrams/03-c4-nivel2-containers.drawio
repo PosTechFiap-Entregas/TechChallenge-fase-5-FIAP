@@ -8,10 +8,10 @@
           <mxGeometry height="60" width="1200" x="600" y="40" as="geometry" />
         </mxCell>
         <mxCell id="boundary" parent="1" style="rounded=1;dashed=1;dashPattern=8 8;strokeWidth=3;strokeColor=#3b82f6;fillColor=#eff6ff;fontSize=20;fontStyle=1;align=center;verticalAlign=top;fontColor=#FFFFFF;labelBackgroundColor=#3399FF;" value="Sistema FiapX" vertex="1">
-          <mxGeometry height="900" width="2000" x="400" y="150" as="geometry" />
+          <mxGeometry height="900" width="1640" x="590" y="150" as="geometry" />
         </mxCell>
-        <mxCell id="user" parent="1" style="shape=umlActor;fillColor=#8b5cf6;strokeWidth=3;fontSize=16;" value="👤 Usuário" vertex="1">
-          <mxGeometry height="120" width="60" x="200" y="500" as="geometry" />
+        <mxCell id="user" parent="1" style="shape=umlActor;fillColor=#8b5cf6;strokeWidth=3;fontSize=16;labelBackgroundColor=#6666FF;" value="👤 Usuário" vertex="1">
+          <mxGeometry height="120" width="60" x="430" y="563" as="geometry" />
         </mxCell>
         <mxCell id="api" parent="1" style="rounded=1;fillColor=#3b82f6;strokeColor=#1d4ed8;strokeWidth=3;fontColor=#fff;fontSize=14;align=center;" value="🌐 API REST&#xa;[ASP.NET Core 8]&#xa;&#xa;• Controllers REST&#xa;• JWT Auth&#xa;• Upload/Download" vertex="1">
           <mxGeometry height="150" width="300" x="730" y="268" as="geometry" />
