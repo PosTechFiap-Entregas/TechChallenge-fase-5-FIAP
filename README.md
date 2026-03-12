@@ -339,13 +339,33 @@ Mostra o **fluxo end-to-end** de upload, processamento e download de vídeos.
 
 ## 🛠️ Instalação e Execução
 
-### Pré-requisitos
+### 📘 Manual Completo
+
+**Para instalação detalhada, configuração de variáveis de ambiente, troubleshooting e guia completo de uso:**
+
+➡️ **[📘 Manual Completo de Instalação, Configuração e Uso](docs/MANUAL-USO-COMPLETO.md)**
+
+O manual inclui:
+- ✅ Pré-requisitos detalhados
+- ✅ Configuração passo a passo do .env
+- ✅ Instalação com Docker
+- ✅ Verificação de infraestrutura (PostgreSQL, Redis, RabbitMQ, Seq)
+- ✅ Como usar o sistema (registro, login, upload, download)
+- ✅ **Observabilidade completa** (Seq, RabbitMQ Management, logs, métricas)
+- ✅ **Troubleshooting** (7 problemas comuns com soluções)
+- ✅ Comandos de manutenção
+
+---
+
+### Quick Start
+
+#### Pré-requisitos
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Docker Desktop](https://www.docker.com/get-started) (ou Docker Engine + Docker Compose)
 - [Git](https://git-scm.com/)
 
-### Quick Start com Docker Compose
+#### Instalação Rápida
 
 ```bash
 # 1. Clone o repositório
@@ -354,7 +374,7 @@ cd TechChallenge-fase-5-FIAP
 
 # 2. Configure as variáveis de ambiente
 cp .env.example .env
-# Edite o .env com suas configurações
+# ⚠️ Edite o .env e altere as senhas!
 
 # 3. Inicie toda a infraestrutura
 docker-compose up -d
@@ -367,45 +387,17 @@ docker-compose ps
 # Health Check: http://localhost:8080/health
 ```
 
-### Verificação do Ambiente
+#### Verificação
 
 ```bash
 # Ver status de todos os containers
 docker-compose ps
 
-# Ver logs da API
-docker-compose logs -f api
-
-# Ver logs do Worker
-docker-compose logs -f worker
-
 # Health check geral
 curl http://localhost:8080/health
 
-# Management UI do RabbitMQ
-# http://localhost:15672 (guest/guest)
-
-# UI do Seq (logs)
-# http://localhost:8081
-```
-
-### Execução Local (sem Docker)
-
-```bash
-# 1. Instalar dependências
-dotnet restore
-
-# 2. Configurar banco de dados
-# Edite appsettings.Development.json com connection string
-
-# 3. Aplicar migrations
-dotnet ef database update --project src/FiapX.Infrastructure
-
-# 4. Executar API
-dotnet run --project src/FiapX.API
-
-# 5. Executar Worker (em outro terminal)
-dotnet run --project src/FiapX.Worker
+# Ver logs
+docker-compose logs -f
 ```
 
 ---
@@ -416,6 +408,7 @@ Toda a documentação arquitetural está disponível na pasta `docs/`:
 
 | Documento | Descrição | Link |
 |-----------|-----------|------|
+| **📘 Manual de Uso** | Instalação, configuração, uso, observabilidade, troubleshooting | [Ver manual](docs/MANUAL-USO-COMPLETO.md) |
 | **📐 Architecture Document** | Visão geral da arquitetura, decisões (ADRs), trade-offs | [Ver documento](docs/architecture-document.md) |
 | **🎭 Event Storming** | Modelagem completa de eventos, comandos, agregados, políticas | [Ver documento](docs/event-storming.md) |
 | **🏛️ Diagramas C4 (Mermaid)** | Diagramas C4 em formato Mermaid para embedding | [Ver documento](docs/diagramas-c4.md) |
@@ -431,7 +424,7 @@ Todos os 7 diagramas estão disponíveis em formato editável na pasta `docs/dia
 | 2 | C4 - Contexto | [.drawio](docs/diagrams/02-c4-nivel1-contexto.drawio) | [.png](docs/diagrams/02-c4-nivel1-contexto.png) |
 | 3 | C4 - Containers | [.drawio](docs/diagrams/03-c4-nivel2-containers.drawio) | [.png](docs/diagrams/03-c4-nivel2-containers.png) |
 | 4 | C4 - Componentes API | [.drawio](docs/diagrams/04-c4-nivel3-componentes-api.drawio) | [.png](docs/diagrams/04-c4-nivel3-componentes-api.png) |
-| 5 | C4 - Componentes Worker | [.drawio](docs/diagrams/05-c4-nivel3-componentes-worker.drawio) | [.png](docs/diagrams/05-c4-nivel3-componentes-worker.drawio) |
+| 5 | C4 - Componentes Worker | [.drawio](docs/diagrams/05-c4-nivel3-componentes-worker.drawio) | [.png](docs/diagrams/05-c4-nivel3-componentes-worker.png) |
 | 6 | Deployment | [.drawio](docs/diagrams/06-deployment-diagram.drawio) | [.png](docs/diagrams/06-deployment-diagram.png) |
 | 7 | Sequence Diagram | [.drawio](docs/diagrams/07-sequence-diagram-complete.drawio) | [.png](docs/diagrams/07-sequence-diagram-complete.png) |
 
@@ -580,7 +573,7 @@ Content-Type: application/json
 **Response (200 OK):**
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAiLCJlbWFpbCI6ImpvYW9AZXhhbXBsZS5jb20iLCJuYW1lIjoiSm_Do28gU2lsdmEiLCJleHAiOjE3MDY2MTcyMDB9.xyz...",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "expiresAt": "2024-01-30T11:00:00Z",
   "user": {
     "id": "123e4567-e89b-12d3-a456-426614174000",
@@ -608,7 +601,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - Senha com BCrypt (salt rounds: 12)
 - Token JWT assinado com secret key
 - HTTPS obrigatório em produção
-- Rate limiting (futuro)
+- Input validation em todos os endpoints
 
 ---
 
@@ -668,206 +661,200 @@ curl -X POST http://localhost:8080/api/videos/upload \
 
 ---
 
+## 📊 Observabilidade e Monitoramento
+
+### Seq - Logs Centralizados
+
+**URL:** http://localhost:8081
+
+Seq centraliza todos os logs estruturados da API e Worker em tempo real.
+
+**Queries úteis:**
+
+```sql
+-- Ver apenas erros
+@Level = 'Error'
+
+-- Ver processamento de vídeos
+SourceContext like '%VideoProcessing%'
+
+-- Ver logs de um usuário específico
+UserId = 'abc-123'
+
+-- Ver logs de hoje com erro
+@Timestamp > DateTime.Now.AddDays(-1) and @Level = 'Error'
+
+-- Ver duração de processamento
+SourceContext like '%VideoProcessing%' and ProcessingDuration is not null
+order by ProcessingDuration desc
+```
+
+**Como usar:**
+1. Acesse http://localhost:8081
+2. Use a barra de busca para queries SQL-like
+3. Clique em qualquer propriedade para filtrar
+4. Use `Ctrl+K` para busca rápida
+5. Salve queries frequentes em Favorites
+
+### RabbitMQ Management
+
+**URL:** http://localhost:15672  
+**Credenciais:** Configuradas no arquivo `.env`
+
+Monitore filas, consumidores e taxa de mensagens.
+
+**Como monitorar:**
+1. **Aba "Queues":**
+   - Ver tamanho da fila `video-uploaded`
+   - Taxa de mensagens (mensagens/segundo)
+   - Mensagens pendentes vs processadas
+
+2. **Aba "Connections":**
+   - Verificar se API e Worker estão conectados
+   - Número de consumers ativos
+
+3. **Comandos CLI úteis:**
+
+```bash
+# Ver filas
+docker-compose exec rabbitmq rabbitmqctl list_queues name messages consumers
+
+# Ver conexões
+docker-compose exec rabbitmq rabbitmqctl list_connections
+
+# Purgar fila (CUIDADO!)
+docker-compose exec rabbitmq rabbitmqctl purge_queue video-uploaded
+```
+
+### Métricas Prometheus (v2.0 - Futuro)
+
+**⚠️ Ainda não implementado na v1.0**
+
+Métricas planejadas:
+- `total_videos_uploaded` (Counter) - Total de vídeos enviados
+- `total_videos_processed` (Counter) - Total processados com sucesso
+- `total_processing_failures` (Counter) - Total de falhas
+- `processing_duration_seconds` (Histogram) - Tempo de processamento
+- `queue_depth` (Gauge) - Tamanho da fila RabbitMQ
+- `active_workers` (Gauge) - Workers ativos
+
+### Logs em Tempo Real
+
+```bash
+# Logs da API
+docker-compose logs -f api
+
+# Logs do Worker
+docker-compose logs -f worker
+
+# Logs de todos os serviços
+docker-compose logs -f
+
+# Filtrar por erro
+docker-compose logs | grep ERROR
+
+# Últimas 100 linhas
+docker-compose logs --tail=100 worker
+```
+
+### Health Checks
+
+**Componentes verificados:**
+- PostgreSQL: `SELECT 1`
+- Redis: `PING`
+- RabbitMQ: Connection check
+- Storage: Disk space check
+
+**Endpoints:**
+- `/health` - Status agregado (200 OK ou 503 Service Unavailable)
+- `/health/ready` - Readiness probe (Kubernetes)
+- `/health/live` - Liveness probe (Kubernetes)
+
+**Response (200 OK):**
+```json
+{
+  "status": "Healthy",
+  "totalDuration": "00:00:00.1234567",
+  "entries": {
+    "postgresql": {
+      "status": "Healthy",
+      "description": "Connection successful",
+      "duration": "00:00:00.0567890"
+    },
+    "redis": {
+      "status": "Healthy",
+      "description": "PONG",
+      "duration": "00:00:00.0012345"
+    },
+    "rabbitmq": {
+      "status": "Healthy",
+      "description": "Connected",
+      "duration": "00:00:00.0234567"
+    },
+    "storage": {
+      "status": "Healthy",
+      "description": "150 GB available",
+      "duration": "00:00:00.0001234"
+    }
+  }
+}
+```
+
+**📘 [Ver guia completo de observabilidade](docs/MANUAL-USO-COMPLETO.md#observabilidade-e-monitoramento)**
+
+---
+
 ## 🎯 Decisões Arquiteturais (ADRs)
 
 ### ADR-001: Clean Architecture
 
-**Decisão:** Utilizar Clean Architecture com separação em 4 camadas (Domain, Application, Infrastructure, Presentation)
-
-**Contexto:** Precisamos de uma arquitetura testável, independente de frameworks e fácil de evoluir
-
-**Justificativa:**
-- ✅ Independência de frameworks (EF, ASP.NET podem ser trocados)
-- ✅ Testabilidade máxima (domain e application isolados)
-- ✅ Regras de negócio centralizadas e protegidas
-- ✅ Dependency Inversion aplicado rigorosamente
-
-**Consequências:**
-- ➕ Alta testabilidade (80.97% cobertura alcançada)
-- ➕ Facilidade de trocar tecnologias (ex: trocar Redis por Memcached)
-- ➖ Mais código inicial (interfaces, DTOs, mappers)
-- ➖ Curva de aprendizado para desenvolvedores juniores
-
-**Alternativas Consideradas:**
-- ❌ Layered Architecture (N-Tier): Muito acoplamento, dificulta testes
-- ❌ Microservices: Over-engineering para o escopo atual
-
----
+**Decisão:** Utilizar Clean Architecture com separação em 4 camadas  
+**Justificativa:** Independência de frameworks, testabilidade, manutenibilidade  
+**Consequências:** Alta testabilidade (80.97% alcançado), mais código inicial
 
 ### ADR-002: Event-Driven com RabbitMQ
 
-**Decisão:** Usar Event-Driven Architecture com RabbitMQ para comunicação assíncrona
-
-**Contexto:** Processamento de vídeo é demorado (segundos a minutos) e não pode bloquear a API
-
-**Justificativa:**
-- ✅ Desacoplamento total entre API e Worker
-- ✅ Garantia de entrega (at-least-once delivery)
-- ✅ Resiliência (retry automático, dead letter queue)
-- ✅ Escalabilidade (adicionar workers sem alterar API)
-
-**Consequências:**
-- ➕ API responde instantaneamente (202 Accepted)
-- ➕ Workers podem escalar horizontalmente
-- ➕ Falhas no Worker não afetam API
-- ➖ Complexidade adicional em debugging
-- ➖ Consistência eventual (não imediata)
-
-**Alternativas Consideradas:**
-- ❌ Processing Síncrono: Timeout em vídeos grandes (> 5 minutos)
-- ❌ Azure Service Bus: Lock-in com cloud específica
-- ❌ Apache Kafka: Over-kill para volume atual, complexidade operacional
-
-**Trade-offs Aceitos:**
-- Consistência Eventual vs Disponibilidade → Escolhemos **Disponibilidade**
-- Complexidade vs Escalabilidade → Escolhemos **Escalabilidade**
-
----
+**Decisão:** Usar Event-Driven Architecture com RabbitMQ  
+**Justificativa:** Desacoplamento, escalabilidade, resiliência  
+**Consequências:** API responde instantaneamente, workers escaláveis, consistência eventual
 
 ### ADR-003: PostgreSQL como Database Principal
 
-**Decisão:** Usar PostgreSQL 16 como banco de dados relacional principal
-
-**Contexto:** Precisamos persistir metadados de usuários e vídeos com ACID completo
-
-**Justificativa:**
-- ✅ ACID completo (transações confiáveis)
-- ✅ Open-source (sem custos de licença)
-- ✅ Suporte a JSON (flexibilidade futura)
-- ✅ Performance excelente para OLTP
-- ✅ Maturidade e comunidade ativa
-
-**Consequências:**
-- ➕ Transações garantidas
-- ➕ Relacionamentos bem definidos (User → Videos)
-- ➕ Queries SQL otimizadas com indexes
-- ➖ Necessidade de conhecimento SQL
-- ➖ Migrations devem ser gerenciadas cuidadosamente
-
-**Alternativas Consideradas:**
-- ❌ MongoDB: Menos adequado para relacionamentos complexos
-- ❌ SQL Server: Custos de licença (não open-source)
-- ❌ MySQL: Menor suporte a JSON e extensões
-
----
+**Decisão:** Usar PostgreSQL 16 como banco relacional  
+**Justificativa:** ACID completo, open-source, suporte JSON, performance  
+**Consequências:** Transações garantidas, relacionamentos bem definidos
 
 ### ADR-004: Redis para Cache
 
-**Decisão:** Usar Redis 7 como cache in-memory
-
-**Contexto:** Consultas frequentes ao banco causam latência desnecessária
-
-**Justificativa:**
-- ✅ Performance (sub-millisecond latency)
-- ✅ TTL nativo (expiração automática)
-- ✅ Estruturas de dados avançadas (strings, hashes, lists)
-- ✅ Suporte a Pub/Sub (escalabilidade futura)
-
-**Consequências:**
-- ➕ Queries de status 10x mais rápidas
-- ➕ Redução de carga no PostgreSQL
-- ➖ Mais uma dependência de infraestrutura
-- ➖ Necessidade de estratégia de invalidação
-
-**Uso Atual:**
-- Cache de status de vídeos (TTL: 5 minutos)
-- Cache de dados de usuário logado (TTL: 15 minutos)
-
----
+**Decisão:** Usar Redis 7 como cache in-memory  
+**Justificativa:** Performance (sub-millisecond), TTL nativo, estruturas avançadas  
+**Consequências:** Queries 10x mais rápidas, redução de carga no PostgreSQL
 
 ### ADR-005: JWT Stateless
 
-**Decisão:** Usar JWT (JSON Web Tokens) stateless para autenticação
+**Decisão:** Usar JWT stateless para autenticação  
+**Justificativa:** Escalabilidade horizontal sem shared state  
+**Consequências:** API pode escalar sem coordenação, impossível revogar antes da expiração
 
-**Contexto:** Autenticação deve ser escalável horizontalmente sem shared state
+### ADR-006: FFmpeg para Processamento
 
-**Justificativa:**
-- ✅ Stateless (sem armazenamento em servidor)
-- ✅ Escalabilidade horizontal (sem sessão compartilhada)
-- ✅ Padrão da indústria (OAuth 2.0, OpenID Connect)
-- ✅ Suporte nativo no ASP.NET Core
-
-**Consequências:**
-- ➕ API pode escalar sem coordenação de sessões
-- ➕ Tokens podem ser validados sem consultar banco
-- ➖ Impossível revogar tokens antes da expiração
-- ➖ Tokens podem ser grandes (payload em Base64)
-
-**Mitigações:**
-- Expiração curta (60 minutos)
-- Refresh token (planejado para v2)
-- Blacklist de tokens (planejado para v2)
-
----
-
-### ADR-006: FFmpeg para Processamento de Vídeo
-
-**Decisão:** Usar FFmpeg via wrapper FFMpegCore para extrair frames
-
-**Contexto:** Necessário extrair frames de vídeos em diversos formatos
-
-**Justificativa:**
-- ✅ Suporta todos os formatos de vídeo (mp4, avi, mov, mkv, etc)
-- ✅ Performance nativa (escrito em C)
-- ✅ Open-source e maduro (20+ anos)
-- ✅ Wrapper .NET disponível (FFMpegCore)
-
-**Consequências:**
-- ➕ Suporte universal a formatos
-- ➕ Alta performance de processamento
-- ➖ Dependência externa (FFmpeg binário)
-- ➖ Download automático na primeira execução (35 MB)
-
-**Alternativas Consideradas:**
-- ❌ Bibliotecas .NET puras: Suporte limitado a formatos
-- ❌ Cloud APIs (AWS MediaConvert): Custos altos, lock-in
-
----
+**Decisão:** Usar FFmpeg via wrapper FFMpegCore  
+**Justificativa:** Suporta todos os formatos, performance nativa, open-source  
+**Consequências:** Suporte universal, alta performance, dependência externa
 
 ### ADR-007: MassTransit sobre RabbitMQ
 
-**Decisão:** Usar MassTransit como abstração sobre RabbitMQ
-
-**Contexto:** RabbitMQ é poderoso mas complexo de configurar (exchanges, queues, bindings, retry)
-
-**Justificativa:**
-- ✅ Abstração de alto nível sobre messaging
-- ✅ Retry policies built-in (exponential backoff)
-- ✅ Circuit breaker built-in
-- ✅ Conventions over configuration
-- ✅ Suporte a Sagas para workflows complexos (futuro)
-
-**Consequências:**
-- ➕ Menos código boilerplate
-- ➕ Resiliência out-of-the-box
-- ➕ Fácil trocar de broker (RabbitMQ → Azure Service Bus)
-- ➖ Camada adicional de abstração
-- ➖ Debugging pode ser mais difícil
-
----
+**Decisão:** Usar MassTransit como abstração  
+**Justificativa:** Retry policies built-in, circuit breaker, conventions  
+**Consequências:** Menos código boilerplate, resiliência out-of-the-box
 
 ### ADR-008: Serilog + Seq para Observabilidade
 
-**Contexto:** Logs distribuídos (API + Worker) precisam ser centralizados e pesquisáveis
+**Decisão:** Usar Serilog para structured logging e Seq para centralização  
+**Justificativa:** Logs estruturados, busca avançada, correlação de logs  
+**Consequências:** Troubleshooting muito mais rápido, queries SQL-like sobre logs
 
-**Decisão:** Usar Serilog para structured logging e Seq para centralização
-
-**Justificativa:**
-- ✅ Logs estruturados em JSON (não plain text)
-- ✅ Busca e filtros avançados no Seq
-- ✅ Correlação de logs entre serviços (via correlation ID)
-- ✅ Seq UI intuitivo e poderoso
-
-**Consequências:**
-- ➕ Troubleshooting muito mais rápido
-- ➕ Queries SQL-like sobre logs
-- ➕ Alertas baseados em logs (futuro)
-- ➖ Seq requer infraestrutura adicional
-
-**Alternativas Consideradas:**
-- ❌ ELK Stack: Muito complexo de operar
-- ❌ Application Insights: Lock-in com Azure
-- ❌ Plain text files: Impossível de pesquisar eficientemente
+**📄 [Ver todos os ADRs detalhados](docs/architecture-document.md)**
 
 ---
 
@@ -916,26 +903,6 @@ docker-compose down
 
 # Parar e remover volumes (CUIDADO: perde dados!)
 docker-compose down -v
-```
-
-### Troubleshooting
-
-```bash
-# Reiniciar um serviço específico
-docker-compose restart api
-
-# Rebuild e restart
-docker-compose up -d --build api
-
-# Ver logs de erro
-docker-compose logs --tail=100 worker | grep ERROR
-
-# Entrar no container
-docker-compose exec api /bin/bash
-
-# Verificar conectividade entre containers
-docker-compose exec api ping postgres
-docker-compose exec api ping rabbitmq
 ```
 
 ---
@@ -992,88 +959,6 @@ https://codecov.io/gh/wesleygyn/TechChallenge-fase-5-FIAP
 - Cobertura por arquivo/pasta
 - Diff coverage em PRs
 - Alertas quando cobertura cai
-
----
-
-## 🔍 Observabilidade
-
-### Logs Estruturados (Serilog + Seq)
-
-**Exemplo de log:**
-```json
-{
-  "@t": "2024-01-30T10:15:30.1234567Z",
-  "@mt": "Video processing completed successfully",
-  "@l": "Information",
-  "SourceContext": "FiapX.Worker.Services.VideoProcessingService",
-  "VideoId": "abc-123",
-  "UserId": "xyz-789",
-  "FrameCount": 300,
-  "ProcessingDuration": "00:05:23.4567890",
-  "FileSizeBytes": 52428800,
-  "CorrelationId": "req-456"
-}
-```
-
-**Acessar Seq UI:**
-- URL: http://localhost:8081
-- Queries: `SourceContext like '%VideoProcessing%' and @l = 'Error'`
-
-### Métricas (Prometheus-ready)
-
-**Métricas expostas:**
-- `total_videos_uploaded` (Counter) - Total de vídeos enviados
-- `total_videos_processed` (Counter) - Total processados com sucesso
-- `total_processing_failures` (Counter) - Total de falhas
-- `processing_duration_seconds` (Histogram) - Tempo de processamento
-- `queue_depth` (Gauge) - Tamanho da fila RabbitMQ
-- `active_workers` (Gauge) - Workers ativos
-
-**Endpoint:**
-- `/metrics` (planejado para v2)
-
-### Health Checks
-
-**Componentes verificados:**
-- PostgreSQL: `SELECT 1`
-- Redis: `PING`
-- RabbitMQ: Connection check
-- Storage: Disk space check
-
-**Endpoints:**
-- `/health` - Status agregado (200 OK ou 503 Service Unavailable)
-- `/health/ready` - Readiness probe (Kubernetes)
-- `/health/live` - Liveness probe (Kubernetes)
-
-**Response (200 OK):**
-```json
-{
-  "status": "Healthy",
-  "totalDuration": "00:00:00.1234567",
-  "entries": {
-    "postgresql": {
-      "status": "Healthy",
-      "description": "Connection successful",
-      "duration": "00:00:00.0567890"
-    },
-    "redis": {
-      "status": "Healthy",
-      "description": "PONG",
-      "duration": "00:00:00.0012345"
-    },
-    "rabbitmq": {
-      "status": "Healthy",
-      "description": "Connected",
-      "duration": "00:00:00.0234567"
-    },
-    "storage": {
-      "status": "Healthy",
-      "description": "150 GB available",
-      "duration": "00:00:00.0001234"
-    }
-  }
-}
-```
 
 ---
 
@@ -1173,17 +1058,6 @@ Memory: 2 GB → 4 GB
 Use case: Vídeos maiores, FFmpeg mais rápido
 ```
 
-### Load Testing (Planejado)
-
-```bash
-# k6 load test script
-k6 run --vus 100 --duration 30s load-test.js
-
-# Expected results:
-# - API: 1000 req/s @ p95 < 200ms
-# - Workers: 50 videos/min processing
-```
-
 ---
 
 ## 👥 Equipe
@@ -1235,7 +1109,7 @@ Este projeto foi desenvolvido como trabalho acadêmico para a FIAP e está dispo
 
 ### v2.0 - Curto Prazo (3 meses)
 - [ ] Refresh Token para JWT (revogação de sessões)
-- [ ] Limpeza automática de storage (arquivo > 30 dias)
+- [ ] Limpeza automática de storage (arquivos > 30 dias)
 - [ ] Dashboard de métricas com Grafana
 - [ ] Rate limiting por usuário
 - [ ] Paginação em listagens
@@ -1298,6 +1172,7 @@ Este é um projeto acadêmico, mas feedback é sempre bem-vindo!
 - **7 diagramas** visuais e editáveis (Draw.io)
 - **8 ADRs** documentados com justificativas
 - **Apresentação** executiva (21 slides)
+- **Manual completo** de instalação e uso
 
 ### ✅ Resiliência e Escalabilidade
 - **Retry policies** (3 tentativas, exponential backoff)
@@ -1330,6 +1205,7 @@ Este é um projeto acadêmico, mas feedback é sempre bem-vindo!
 > - ✅ **7 diagramas profissionais** (editáveis e visuais)
 > - ✅ **8 ADRs documentados** com justificativas e trade-offs
 > - ✅ **Observabilidade completa** (logs, metrics, health checks)
+> - ✅ **Manual completo** de instalação e troubleshooting
 > 
 > **Isso demonstra maturidade arquitetural e preparação para sistemas de larga escala em produção!**"
 
@@ -1342,8 +1218,8 @@ Este é um projeto acadêmico, mas feedback é sempre bem-vindo!
 5. **Demonstrar C4 Model** → 3 níveis de abstração
 6. **Apresentar ADRs** → Decisões justificadas (ex: por que RabbitMQ?)
 7. **Executar sistema** → docker-compose up -d
-8. **Testar fluxo completo** → Upload → Status → Download
-9. **Mostrar logs no Seq** → Observabilidade em ação
+8. **Testar fluxo completo** → Upload → Ver no Seq → Ver no RabbitMQ → Download
+9. **Mostrar observabilidade** → Logs em tempo real, queries no Seq
 
 ---
 
