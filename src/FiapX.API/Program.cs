@@ -4,7 +4,7 @@ using FiapX.Application.Extensions;
 using FiapX.Infrastructure.Extensions;
 using FiapX.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
-using Prometheus; // ← ADICIONADO
+using Prometheus;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,13 +13,11 @@ builder.Host.UseSerilogConfiguration();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerConfiguration();
 builder.Services.AddJwtConfiguration(builder.Configuration);
 builder.Services.AddCorsConfiguration();
 builder.Services.AddHealthChecksConfiguration(builder.Configuration);
 builder.Services.AddUploadConfiguration();
-
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -31,20 +29,12 @@ app.UseSwaggerConfiguration();
 
 app.UseCors("CorsPolicy");
 
-// ═══════════════════════════════════════════════════════════════════════════
-// PROMETHEUS METRICS
-// ═══════════════════════════════════════════════════════════════════════════
-// Middleware que coleta métricas HTTP automaticamente
 app.UseHttpMetrics(options =>
 {
-    // Adiciona labels customizados
     options.AddCustomLabel("host", context => context.Request.Host.Host);
 });
 
-// Endpoint /metrics para Prometheus coletar
 app.MapMetrics();
-// ═══════════════════════════════════════════════════════════════════════════
-
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -53,7 +43,6 @@ app.MapControllers();
 
 Log.Information("FiapX API iniciada com sucesso.");
 
-// Aplicar Migrations Automaticamente
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

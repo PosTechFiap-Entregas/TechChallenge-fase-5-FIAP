@@ -8,9 +8,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace FiapX.Infrastructure.Security;
 
-/// <summary>
-/// Implementação do serviço de geração e validação de tokens JWT
-/// </summary>
 public class JwtTokenService : IJwtTokenService
 {
     private readonly string _secret;

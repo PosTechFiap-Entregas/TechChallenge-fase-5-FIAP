@@ -1,8 +1,5 @@
 namespace FiapX.Shared.Results;
 
-/// <summary>
-/// Representa o resultado de uma operação
-/// </summary>
 public class Result
 {
     public bool IsSuccess { get; }
@@ -28,9 +25,6 @@ public class Result
     public static Result<T> Failure<T>(string error) => new(default!, false, error);
 }
 
-/// <summary>
-/// Representa o resultado de uma operação com valor de retorno
-/// </summary>
 public class Result<T> : Result
 {
     public T? Value { get; }

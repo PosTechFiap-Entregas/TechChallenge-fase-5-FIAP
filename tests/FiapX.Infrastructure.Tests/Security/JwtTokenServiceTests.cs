@@ -3,7 +3,6 @@ using FiapX.Infrastructure.Security;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace FiapX.Infrastructure.Tests.Security;
 
@@ -32,13 +31,10 @@ public class JwtTokenServiceTests
     [Fact]
     public void GenerateToken_WithValidUser_ShouldReturnValidJwtToken()
     {
-        // Arrange
         var user = new User("test@example.com", "hash", "Test User");
 
-        // Act
         var token = _sut.GenerateToken(user);
 
-        // Assert
         token.Should().NotBeNullOrEmpty();
 
         var handler = new JwtSecurityTokenHandler();
@@ -52,13 +48,10 @@ public class JwtTokenServiceTests
     [Fact]
     public void GenerateToken_ShouldIncludeUserClaims()
     {
-        // Arrange
         var user = new User("user@test.com", "hash", "John Doe");
 
-        // Act
         var token = _sut.GenerateToken(user);
 
-        // Assert
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
 
@@ -73,15 +66,12 @@ public class JwtTokenServiceTests
     [Fact]
     public void GenerateToken_ShouldSetCorrectExpiration()
     {
-        // Arrange
         var user = new User("test@example.com", "hash", "Test User");
         var beforeGeneration = DateTime.UtcNow;
 
-        // Act
         var token = _sut.GenerateToken(user);
         var afterGeneration = DateTime.UtcNow;
 
-        // Assert
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
 
@@ -92,13 +82,10 @@ public class JwtTokenServiceTests
     [Fact]
     public void GetTokenExpiration_ShouldReturn60MinutesFromNow()
     {
-        // Arrange
         var before = DateTimeOffset.UtcNow.AddMinutes(59);
 
-        // Act
         var expiration = _sut.GetTokenExpiration();
 
-        // Assert
         var after = DateTimeOffset.UtcNow.AddMinutes(61);
 
         expiration.Should().BeAfter(before);
@@ -108,19 +95,16 @@ public class JwtTokenServiceTests
     [Fact]
     public void Constructor_WithMissingSecret_ShouldThrowException()
     {
-        // Arrange
         var configData = new Dictionary<string, string>
         {
             { "JWT:Issuer", "FiapX.Tests" },
             { "JWT:Audience", "FiapX.API" }
-            // Missing Secret
         };
 
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(configData!)
             .Build();
 
-        // Act & Assert
         var act = () => new JwtTokenService(config);
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*JWT:Secret*");
@@ -129,15 +113,12 @@ public class JwtTokenServiceTests
     [Fact]
     public void GenerateToken_WithDifferentUsers_ShouldGenerateDifferentTokens()
     {
-        // Arrange
         var user1 = new User("user1@test.com", "hash1", "User One");
         var user2 = new User("user2@test.com", "hash2", "User Two");
 
-        // Act
         var token1 = _sut.GenerateToken(user1);
         var token2 = _sut.GenerateToken(user2);
 
-        // Assert
         token1.Should().NotBe(token2);
 
         var handler = new JwtSecurityTokenHandler();

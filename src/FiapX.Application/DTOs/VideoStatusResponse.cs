@@ -1,10 +1,5 @@
-﻿using FiapX.Domain.Enums;
+﻿namespace FiapX.Application.DTOs;
 
-namespace FiapX.Application.DTOs;
-
-/// <summary>
-/// DTO de status detalhado do vídeo
-/// </summary>
 public record VideoStatusResponse
 {
     public Guid VideoId { get; init; }

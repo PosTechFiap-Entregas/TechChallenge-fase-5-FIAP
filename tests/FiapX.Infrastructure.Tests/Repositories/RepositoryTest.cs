@@ -282,7 +282,6 @@ public class RepositoryTests : IDisposable
     [Fact]
     public async Task Repository_ExistsAsync_ShouldReturnFalse_AfterDelete()
     {
-        // Arrange
         var user = MakeUser("exists-delete@example.com");
         await _repository.AddAsync(user);
         await _context.SaveChangesAsync();
@@ -293,17 +292,14 @@ public class RepositoryTests : IDisposable
         await _context.SaveChangesAsync();
         _context.ChangeTracker.Clear();
 
-        // Act
         var exists = await _repository.ExistsAsync(user.Id);
 
-        // Assert
         exists.Should().BeFalse();
     }
 
     [Fact]
     public async Task Repository_ExistsAsync_WithCancellationToken_ShouldRespectToken()
     {
-        // Arrange
         var user = MakeUser("cancel-exists@example.com");
         await _repository.AddAsync(user);
         await _context.SaveChangesAsync();
@@ -311,31 +307,22 @@ public class RepositoryTests : IDisposable
 
         using var cts = new CancellationTokenSource();
 
-        // Act
         var exists = await _repository.ExistsAsync(user.Id, cts.Token);
 
-        // Assert
         exists.Should().BeTrue();
     }
 
     [Fact]
     public async Task Repository_ExistsAsync_WithEmptyGuid_ShouldReturnFalse()
     {
-        // Act
         var exists = await _repository.ExistsAsync(Guid.Empty);
 
-        // Assert
         exists.Should().BeFalse();
     }
-
-    // -------------------------------------------------------------------------
-    // Cenários combinados
-    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task Repository_AddThenGetAll_ShouldReflectAddedEntities()
     {
-        // Arrange
         var users = Enumerable.Range(1, 5)
             .Select(i => MakeUser($"bulk{i}@example.com", $"Bulk User {i}"))
             .ToList();
@@ -346,23 +333,19 @@ public class RepositoryTests : IDisposable
         await _context.SaveChangesAsync();
         _context.ChangeTracker.Clear();
 
-        // Act
         var all = await _repository.GetAllAsync();
 
-        // Assert
         all.Should().HaveCount(5);
     }
 
     [Fact]
     public async Task Repository_UpdateThenGetById_ShouldReturnUpdatedEntity()
     {
-        // Arrange
         var user = MakeUser("round-trip@example.com");
         await _repository.AddAsync(user);
         await _context.SaveChangesAsync();
         _context.ChangeTracker.Clear();
 
-        // Act
         var fetched = await _repository.GetByIdAsync(user.Id);
         fetched!.UpdateName("Round Trip Updated");
         await _repository.UpdateAsync(fetched);
@@ -371,7 +354,6 @@ public class RepositoryTests : IDisposable
 
         var result = await _repository.GetByIdAsync(user.Id);
 
-        // Assert
         result!.Name.Should().Be("Round Trip Updated");
     }
 }

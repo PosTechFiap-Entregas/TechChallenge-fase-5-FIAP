@@ -37,11 +37,10 @@ public class UploadVideoUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithValidData_ShouldUploadVideoAndPublishEvent()
     {
-        // Arrange
         var userId = Guid.NewGuid();
         var user = new User("user@test.com", "hash", "User");
         var fileName = "video.mp4";
-        var fileSize = 1024 * 1024L; // 1MB
+        var fileSize = 1024 * 1024L;
         var storagePath = "/storage/video.mp4";
 
         var fileStream = new MemoryStream();
@@ -73,10 +72,8 @@ public class UploadVideoUseCaseTests
             .Setup(x => x.PublishAsync(It.IsAny<VideoUploadedEvent>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value.VideoId.Should().NotBe(Guid.Empty);
@@ -112,7 +109,6 @@ public class UploadVideoUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithNonExistentUser_ShouldReturnFailure()
     {
-        // Arrange
         var userId = Guid.NewGuid();
         var request = new UploadVideoRequest
         {
@@ -126,10 +122,8 @@ public class UploadVideoUseCaseTests
             .Setup(x => x.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Usuário não encontrado.");
 
@@ -145,7 +139,6 @@ public class UploadVideoUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WhenStorageFails_ShouldThrowException()
     {
-        // Arrange
         var userId = Guid.NewGuid();
         var user = new User("user@test.com", "hash", "User");
         var request = new UploadVideoRequest
@@ -164,7 +157,6 @@ public class UploadVideoUseCaseTests
             .Setup(x => x.SaveVideoAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new IOException("Disk full"));
 
-        // Act & Assert
         await Assert.ThrowsAsync<IOException>(
             async () => await _sut.ExecuteAsync(request));
 
@@ -175,11 +167,10 @@ public class UploadVideoUseCaseTests
 
     [Theory]
     [InlineData("video.mp4", 1024L)]
-    [InlineData("movie.avi", 1024L * 1024L * 100)] // 100MB
+    [InlineData("movie.avi", 1024L * 1024L * 100)]
     [InlineData("clip.mov", 500L)]
     public async Task ExecuteAsync_WithVariousFileSizes_ShouldSucceed(string fileName, long fileSize)
     {
-        // Arrange
         var userId = Guid.NewGuid();
         var user = new User("user@test.com", "hash", "User");
         var request = new UploadVideoRequest
@@ -210,10 +201,8 @@ public class UploadVideoUseCaseTests
             .Setup(x => x.PublishAsync(It.IsAny<VideoUploadedEvent>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.OriginalFileName.Should().Be(fileName);
     }

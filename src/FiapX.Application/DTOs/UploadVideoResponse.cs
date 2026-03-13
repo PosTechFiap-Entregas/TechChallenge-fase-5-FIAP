@@ -1,10 +1,5 @@
-﻿using FiapX.Domain.Enums;
+﻿namespace FiapX.Application.DTOs;
 
-namespace FiapX.Application.DTOs;
-
-/// <summary>
-/// DTO de resposta do upload
-/// </summary>
 public record UploadVideoResponse
 {
     public Guid VideoId { get; init; }

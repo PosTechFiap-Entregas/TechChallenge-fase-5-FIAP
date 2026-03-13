@@ -27,7 +27,6 @@ public class GetVideoStatusUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithValidVideo_ShouldReturnStatus()
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var video = new Video(userId, "video.mp4", "/storage/video.mp4", 1024);
@@ -39,10 +38,8 @@ public class GetVideoStatusUseCaseTests
             .Setup(x => x.GetByIdWithUserAsync(videoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(video);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, userId);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value.VideoId.Should().Be(video.Id);
@@ -58,7 +55,6 @@ public class GetVideoStatusUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithNonExistentVideo_ShouldReturnFailure()
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var userId = Guid.NewGuid();
 
@@ -66,10 +62,8 @@ public class GetVideoStatusUseCaseTests
             .Setup(x => x.GetByIdWithUserAsync(videoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Video?)null);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, userId);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Vídeo não encontrado.");
     }
@@ -77,7 +71,6 @@ public class GetVideoStatusUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithDifferentUserId_ShouldReturnAccessDenied()
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var ownerId = Guid.NewGuid();
         var requesterId = Guid.NewGuid();
@@ -88,10 +81,8 @@ public class GetVideoStatusUseCaseTests
             .Setup(x => x.GetByIdWithUserAsync(videoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(video);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, requesterId);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Acesso negado.");
     }
@@ -99,7 +90,6 @@ public class GetVideoStatusUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithFailedVideo_ShouldReturnFailureStatus()
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var video = new Video(userId, "video.mp4", "/storage/video.mp4", 1024);
@@ -111,10 +101,8 @@ public class GetVideoStatusUseCaseTests
             .Setup(x => x.GetByIdWithUserAsync(videoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(video);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, userId);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Status.Should().Be("Failed");
         result.Value.StatusDescription.Should().Be("Falha no processamento");
@@ -128,7 +116,6 @@ public class GetVideoStatusUseCaseTests
     [InlineData(VideoStatus.Processing, "Processando frames...")]
     public async Task ExecuteAsync_ShouldMapStatusDescriptionCorrectly(VideoStatus status, string expectedDescription)
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var video = new Video(userId, "video.mp4", "/storage/video.mp4", 1024);
@@ -145,10 +132,8 @@ public class GetVideoStatusUseCaseTests
             .Setup(x => x.GetByIdWithUserAsync(videoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(video);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, userId);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.StatusDescription.Should().Be(expectedDescription);
     }

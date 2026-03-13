@@ -129,7 +129,6 @@ public class RedisCacheServiceTests
         result.Should().BeFalse();
     }
 
-    // Classe auxiliar para testes
     private class TestData
     {
         public string Name { get; set; } = string.Empty;

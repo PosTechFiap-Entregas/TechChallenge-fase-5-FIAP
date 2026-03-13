@@ -7,9 +7,6 @@ using System.Security.Claims;
 
 namespace FiapX.API.Controllers;
 
-/// <summary>
-/// Controller responsável pelos endpoints de vídeos
-/// </summary>
 [ApiController]
 [Route("api/videos")]
 [Authorize]
@@ -36,13 +33,6 @@ public class VideosController : ControllerBase
         _uploadValidator = uploadValidator;
     }
 
-    /// <summary>
-    /// Faz upload de um vídeo para processamento
-    /// </summary>
-    /// <param name="file">Arquivo de vídeo (máximo 2GB)</param>
-    /// <returns>ID do vídeo e status do processamento</returns>
-    /// <response code="201">Vídeo enviado com sucesso</response>
-    /// <response code="400">Arquivo inválido</response>
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -74,11 +64,6 @@ public class VideosController : ControllerBase
         return Created("", new { Success = true, Data = result.Value });
     }
 
-    /// <summary>
-    /// Lista todos os vídeos do usuário autenticado
-    /// </summary>
-    /// <returns>Lista de vídeos do usuário</returns>
-    /// <response code="200">Lista retornada com sucesso</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ListVideos(CancellationToken cancellationToken)
@@ -93,13 +78,6 @@ public class VideosController : ControllerBase
         return Ok(new { Success = true, Data = result.Value });
     }
 
-    /// <summary>
-    /// Retorna o status detalhado de um vídeo específico
-    /// </summary>
-    /// <param name="videoId">ID do vídeo</param>
-    /// <returns>Status detalhado do vídeo</returns>
-    /// <response code="200">Status retornado com sucesso</response>
-    /// <response code="404">Vídeo não encontrado</response>
     [HttpGet("{videoId:guid}/status")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -115,14 +93,6 @@ public class VideosController : ControllerBase
         return Ok(new { Success = true, Data = result.Value });
     }
 
-    /// <summary>
-    /// Faz download do ZIP com os frames extraídos do vídeo
-    /// </summary>
-    /// <param name="videoId">ID do vídeo</param>
-    /// <returns>Arquivo ZIP com os frames</returns>
-    /// <response code="200">Download iniciado com sucesso</response>
-    /// <response code="400">Vídeo não disponível para download</response>
-    /// <response code="404">Vídeo não encontrado</response>
     [HttpGet("{videoId:guid}/download")]
     [Produces("application/zip")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -146,9 +116,6 @@ public class VideosController : ControllerBase
         );
     }
 
-    /// <summary>
-    /// Extrai o UserId do token JWT atual
-    /// </summary>
     private Guid GetUserIdFromToken()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)

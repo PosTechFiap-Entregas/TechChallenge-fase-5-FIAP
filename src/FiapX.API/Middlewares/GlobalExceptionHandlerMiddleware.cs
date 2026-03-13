@@ -2,10 +2,6 @@
 
 namespace FiapX.API.Middlewares;
 
-/// <summary>
-/// Middleware global para tratamento de erros não tratados.
-/// Captura exceções e retorna uma resposta JSON padronizada.
-/// </summary>
 public class GlobalExceptionHandlerMiddleware
 {
     private readonly RequestDelegate _next;

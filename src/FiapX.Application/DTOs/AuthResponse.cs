@@ -1,8 +1,5 @@
 ﻿namespace FiapX.Application.DTOs;
 
-/// <summary>
-/// DTO de resposta de autenticação (retorno do token)
-/// </summary>
 public record AuthResponse
 {
     public Guid UserId { get; init; }

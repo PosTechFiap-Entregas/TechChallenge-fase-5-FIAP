@@ -7,9 +7,6 @@ using FiapX.Shared.Results;
 
 namespace FiapX.Application.UseCases.Videos;
 
-/// <summary>
-/// Use Case para upload de vídeo
-/// </summary>
 public class UploadVideoUseCase : IUploadVideoUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -30,18 +27,15 @@ public class UploadVideoUseCase : IUploadVideoUseCase
         UploadVideoRequest request,
         CancellationToken cancellationToken = default)
     {
-        // Verificar se o usuário existe
         var user = await _unitOfWork.Users
             .GetByIdAsync(request.UserId, cancellationToken);
 
         if (user is null)
             return Result.Failure<UploadVideoResponse>("Usuário não encontrado.");
 
-        // Salvar arquivo no storage
         var storagePath = await _storageService
             .SaveVideoAsync(request.FileStream, request.FileName, cancellationToken);
 
-        // Criar entidade de vídeo
         var video = new Video(
             userId: request.UserId,
             originalFileName: request.FileName,
@@ -49,14 +43,11 @@ public class UploadVideoUseCase : IUploadVideoUseCase
             fileSizeBytes: request.FileSize
         );
 
-        // Marcar como na fila
         video.MarkAsQueued();
 
-        // Persistir no banco
         await _unitOfWork.Videos.AddAsync(video, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Publicar evento na fila
         await _messagePublisher.PublishAsync(new VideoUploadedEvent
         {
             VideoId = video.Id,

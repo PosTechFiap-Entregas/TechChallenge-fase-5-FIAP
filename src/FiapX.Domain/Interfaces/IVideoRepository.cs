@@ -3,9 +3,6 @@ using FiapX.Domain.Enums;
 
 namespace FiapX.Domain.Interfaces;
 
-/// <summary>
-/// Interface do repositório de vídeos
-/// </summary>
 public interface IVideoRepository : IRepository<Video>
 {
     Task<IEnumerable<Video>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);

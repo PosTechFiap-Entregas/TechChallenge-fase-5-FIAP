@@ -5,9 +5,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace FiapX.Infrastructure.Persistence;
 
-/// <summary>
-/// Implementacao do Unit of Work para gerenciamento de transacoes
-/// </summary>
 public class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _context;

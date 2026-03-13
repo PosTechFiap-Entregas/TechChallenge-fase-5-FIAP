@@ -1,8 +1,5 @@
 namespace FiapX.Domain.Entities;
 
-/// <summary>
-/// Classe base para todas as entidades do domínio
-/// </summary>
 public abstract class BaseEntity
 {
     public Guid Id { get; protected set; }

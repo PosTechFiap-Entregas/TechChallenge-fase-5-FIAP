@@ -305,7 +305,6 @@ public class FFmpegVideoProcessingServiceTests
         var outputDir = CreateTempOutputDir();
         try
         {
-            // Chama duas vezes: primeira cobre o early return, segunda confirma idempotência
             var result1 = await _service.ProcessVideoAsync(path, outputDir);
             var result2 = await _service.ProcessVideoAsync(path, outputDir);
 

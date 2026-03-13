@@ -20,7 +20,6 @@ public class MassTransitMessagePublisherTests
     [Fact]
     public async Task PublishAsync_ShouldCallBusPublish()
     {
-        // Arrange
         var message = new VideoUploadedEvent
         {
             VideoId = Guid.NewGuid(),
@@ -34,10 +33,8 @@ public class MassTransitMessagePublisherTests
             .Setup(x => x.Publish(message, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
         await _publisher.PublishAsync(message);
 
-        // Assert
         _busMock.Verify(
             x => x.Publish(message, It.IsAny<CancellationToken>()),
             Times.Once);
@@ -46,7 +43,6 @@ public class MassTransitMessagePublisherTests
     [Fact]
     public async Task PublishAsync_WithCancellationToken_ShouldPassTokenToBus()
     {
-        // Arrange
         var message = new VideoUploadedEvent
         {
             VideoId = Guid.NewGuid(),
@@ -62,10 +58,8 @@ public class MassTransitMessagePublisherTests
             .Setup(x => x.Publish(message, cancellationToken))
             .Returns(Task.CompletedTask);
 
-        // Act
         await _publisher.PublishAsync(message, cancellationToken);
 
-        // Assert
         _busMock.Verify(
             x => x.Publish(message, cancellationToken),
             Times.Once);
@@ -74,7 +68,6 @@ public class MassTransitMessagePublisherTests
     [Fact]
     public async Task PublishAsync_WithDifferentMessageType_ShouldWork()
     {
-        // Arrange
         var message = new VideoProcessedEvent
         {
             VideoId = Guid.NewGuid(),
@@ -86,10 +79,8 @@ public class MassTransitMessagePublisherTests
             .Setup(x => x.Publish(message, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
         await _publisher.PublishAsync(message);
 
-        // Assert
         _busMock.Verify(
             x => x.Publish(message, It.IsAny<CancellationToken>()),
             Times.Once);

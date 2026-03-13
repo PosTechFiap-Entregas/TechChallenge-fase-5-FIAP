@@ -4,9 +4,6 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace FiapX.API.Configurations;
 
-/// <summary>
-/// Configurações do Swagger / OpenAPI
-/// </summary>
 public static class SwaggerConfiguration
 {
     public static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
@@ -29,7 +26,6 @@ public static class SwaggerConfiguration
                 }
             });
 
-            // Suporte a JWT no Swagger
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,

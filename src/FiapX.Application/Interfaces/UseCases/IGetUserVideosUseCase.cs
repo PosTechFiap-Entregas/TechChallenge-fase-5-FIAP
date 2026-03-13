@@ -8,9 +8,6 @@ using System.Threading.Tasks;
 
 namespace FiapX.Application.Interfaces.UseCases
 {
-    /// <summary>
-    /// Interface para o caso de uso de listagem de vídeos do usuário
-    /// </summary>
     public interface IGetUserVideosUseCase
     {
         Task<Result<IEnumerable<VideoListResponse>>> ExecuteAsync(Guid userId, CancellationToken cancellationToken = default);

@@ -14,9 +14,6 @@ using StackExchange.Redis;
 
 namespace FiapX.Infrastructure.Extensions;
 
-/// <summary>
-/// Extensões para configuração de dependências da camada de infraestrutura
-/// </summary>
 public static class InfrastructureServiceExtensions
 {
     public static IServiceCollection AddInfrastructure(
@@ -31,25 +28,19 @@ public static class InfrastructureServiceExtensions
         IConfiguration configuration,
         bool includeMessaging)
     {
-        // Database
         services.AddDatabase(configuration);
 
-        // Repositories
         services.AddRepositories();
 
-        // Cache
         services.AddRedisCache(configuration);
 
-        // Messaging (opcional - Worker tem sua própria config)
         if (includeMessaging)
         {
             services.AddRabbitMqMessaging(configuration);
         }
 
-        // Storage
         services.AddStorage(configuration);
 
-        // JWT
         services.AddScoped<IJwtTokenService, JwtTokenService>();
 
         return services;
@@ -73,7 +64,6 @@ public static class InfrastructureServiceExtensions
                 npgsqlOptions.CommandTimeout(30);
             });
 
-            // Apenas em desenvolvimento
             options.EnableSensitiveDataLogging(false);
             options.EnableDetailedErrors(false);
         });
@@ -126,7 +116,6 @@ public static class InfrastructureServiceExtensions
                     h.Password(password);
                 });
 
-                // Configurações de retry
                 cfg.UseMessageRetry(r =>
                 {
                     r.Incremental(3, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2));

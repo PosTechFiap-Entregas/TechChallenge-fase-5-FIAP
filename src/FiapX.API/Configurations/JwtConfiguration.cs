@@ -4,9 +4,6 @@ using System.Text;
 
 namespace FiapX.API.Configurations;
 
-/// <summary>
-/// Configurações de autenticação JWT
-/// </summary>
 public static class JwtConfiguration
 {
     public static IServiceCollection AddJwtConfiguration(this IServiceCollection services, IConfiguration configuration)
