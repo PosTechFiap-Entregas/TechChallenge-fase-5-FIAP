@@ -1,8 +1,5 @@
 namespace FiapX.Domain.Entities;
 
-/// <summary>
-/// Entidade de usuário do sistema
-/// </summary>
 public class User : BaseEntity
 {
     public string Email { get; private set; }

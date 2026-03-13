@@ -8,9 +8,6 @@ using FiapX.Shared.Security;
 
 namespace FiapX.Application.UseCases.Auth;
 
-/// <summary>
-/// Use Case para registro de novo usuário
-/// </summary>
 public class RegisterUserUseCase : IRegisterUserUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -28,24 +25,19 @@ public class RegisterUserUseCase : IRegisterUserUseCase
         RegisterUserRequest request,
         CancellationToken cancellationToken = default)
     {
-        // Verificar se email já existe
         var emailExists = await _unitOfWork.Users
             .EmailExistsAsync(request.Email, cancellationToken);
 
         if (emailExists)
             return Result.Failure<AuthResponse>("Email já está sendo utilizado.");
 
-        // Criar hash da senha
         var passwordHash = PasswordHasher.HashPassword(request.Password);
 
-        // Criar entidade
         var user = new User(request.Email, passwordHash, request.Name);
 
-        // Persistir
         await _unitOfWork.Users.AddAsync(user, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Gerar token
         var token = _jwtService.GenerateToken(user);
 
         var response = new AuthResponse

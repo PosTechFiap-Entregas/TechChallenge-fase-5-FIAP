@@ -5,9 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FiapX.API.Controllers;
 
-/// <summary>
-/// Controller responsável pelos endpoints de autenticação
-/// </summary>
 [ApiController]
 [Route("api/auth")]
 [Produces("application/json")]
@@ -30,14 +27,6 @@ public class AuthController : ControllerBase
         _loginValidator = loginValidator;
     }
 
-    /// <summary>
-    /// Registra um novo usuário
-    /// </summary>
-    /// <param name="request">Dados do novo usuário</param>
-    /// <returns>Token JWT do usuário registrado</returns>
-    /// <response code="201">Usuário registrado com sucesso</response>
-    /// <response code="400">Dados inválidos</response>
-    /// <response code="409">Email já está em uso</response>
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -59,14 +48,6 @@ public class AuthController : ControllerBase
         return Created("", new { Success = true, Data = result.Value });
     }
 
-    /// <summary>
-    /// Autentica um usuário existente
-    /// </summary>
-    /// <param name="request">Email e senha do usuário</param>
-    /// <returns>Token JWT do usuário autenticado</returns>
-    /// <response code="200">Login realizado com sucesso</response>
-    /// <response code="400">Dados inválidos</response>
-    /// <response code="401">Email ou senha inválidos</response>
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

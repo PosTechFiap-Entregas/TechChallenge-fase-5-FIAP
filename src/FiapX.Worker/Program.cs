@@ -1,7 +1,7 @@
 ﻿using FiapX.Application.Extensions;
 using FiapX.Infrastructure.Extensions;
 using FiapX.Worker.Extensions;
-using Prometheus; // ← ADICIONADO
+using Prometheus;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -27,14 +27,9 @@ try
 
     var host = builder.Build();
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // PROMETHEUS METRICS SERVER
-    // ═══════════════════════════════════════════════════════════════════════
-    // Inicia servidor HTTP na porta 9090 para expor métricas
     var metricServer = new KestrelMetricServer(port: 9091);
     metricServer.Start();
     Log.Information("Prometheus Metrics Server rodando em http://localhost:9091/metrics");
-    // ═══════════════════════════════════════════════════════════════════════
 
     Log.Information("FiapX Worker iniciado e escutando a fila RabbitMQ...");
 

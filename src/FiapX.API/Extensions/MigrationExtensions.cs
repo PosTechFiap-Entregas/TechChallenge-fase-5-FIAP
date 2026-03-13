@@ -3,14 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FiapX.API.Extensions;
 
-/// <summary>
-/// Extensões para aplicar migrations automaticamente no banco de dados
-/// </summary>
 public static class MigrationExtensions
 {
-    /// <summary>
-    /// Aplica migrations pendentes no banco de dados automaticamente
-    /// </summary>
     public static async Task ApplyMigrationsAsync(this WebApplication app)
     {
         using var scope = app.Services.CreateScope();

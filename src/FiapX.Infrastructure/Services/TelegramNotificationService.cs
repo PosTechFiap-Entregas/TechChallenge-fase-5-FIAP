@@ -6,9 +6,6 @@ using Telegram.Bot.Types.Enums;
 
 namespace FiapX.Infrastructure.Services;
 
-/// <summary>
-/// Implementação do serviço de notificações via Telegram
-/// </summary>
 public class TelegramNotificationService : ITelegramNotificationService
 {
     private readonly ILogger<TelegramNotificationService> _logger;
@@ -137,9 +134,6 @@ public class TelegramNotificationService : ITelegramNotificationService
         }
     }
 
-    /// <summary>
-    /// Escapa caracteres especiais do Markdown do Telegram
-    /// </summary>
     private static string EscapeMarkdown(string text)
     {
         if (string.IsNullOrEmpty(text))

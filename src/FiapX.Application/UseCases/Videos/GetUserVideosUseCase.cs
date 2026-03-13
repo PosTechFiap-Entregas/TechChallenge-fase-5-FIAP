@@ -5,9 +5,6 @@ using FiapX.Shared.Results;
 
 namespace FiapX.Application.UseCases.Videos;
 
-/// <summary>
-/// Use Case para listar vídeos do usuário autenticado
-/// </summary>
 public class GetUserVideosUseCase : IGetUserVideosUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -21,14 +18,12 @@ public class GetUserVideosUseCase : IGetUserVideosUseCase
         Guid userId,
         CancellationToken cancellationToken = default)
     {
-        // Verificar se o usuário existe
         var user = await _unitOfWork.Users
             .GetByIdAsync(userId, cancellationToken);
 
         if (user is null)
             return Result.Failure<IEnumerable<VideoListResponse>>("Usuário não encontrado.");
 
-        // Buscar vídeos
         var videos = await _unitOfWork.Videos
             .GetByUserIdAsync(userId, cancellationToken);
 

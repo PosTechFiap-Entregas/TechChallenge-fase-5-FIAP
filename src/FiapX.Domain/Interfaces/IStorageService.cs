@@ -1,9 +1,5 @@
 ﻿namespace FiapX.Domain.Interfaces;
 
-/// <summary>
-/// Interface para serviço de armazenamento de arquivos.
-/// Definida no Domain para que Application possa usar sem referenciar Infrastructure.
-/// </summary>
 public interface IStorageService
 {
     Task<string> SaveVideoAsync(Stream fileStream, string fileName, CancellationToken cancellationToken = default);

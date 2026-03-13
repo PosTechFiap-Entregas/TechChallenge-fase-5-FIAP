@@ -8,11 +8,6 @@ using Microsoft.Extensions.Logging;
 
 namespace FiapX.Worker.Consumers;
 
-/// <summary>
-/// Consumer que processa vídeos quando eles são enviados.
-/// Consome VideoUploadedEvent da fila RabbitMQ.
-/// Implementa idempotência, timeout, logging detalhado e métricas Prometheus.
-/// </summary>
 public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -21,7 +16,7 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
     private readonly IMessagePublisher _messagePublisher;
     private readonly ITelegramNotificationService _telegramNotificationService;
     private readonly ILogger<VideoUploadedEventConsumer> _logger;
-    private readonly VideoMetricsService _metrics; // ← ADICIONADO
+    private readonly VideoMetricsService _metrics;
 
     public VideoUploadedEventConsumer(
         IUnitOfWork unitOfWork,
@@ -30,7 +25,7 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
         IMessagePublisher messagePublisher,
         ITelegramNotificationService telegramNotificationService,
         ILogger<VideoUploadedEventConsumer> logger,
-        VideoMetricsService metrics) // ← ADICIONADO
+        VideoMetricsService metrics)
     {
         _unitOfWork = unitOfWork;
         _storageService = storageService;
@@ -38,7 +33,7 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
         _messagePublisher = messagePublisher;
         _telegramNotificationService = telegramNotificationService;
         _logger = logger;
-        _metrics = metrics; // ← ADICIONADO
+        _metrics = metrics;
     }
 
     public async Task Consume(ConsumeContext<VideoUploadedEvent> context)
@@ -52,17 +47,11 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
             message.VideoId,
             message.UserId);
 
-        // ═══════════════════════════════════════════════════════════════════════
-        // MÉTRICAS: Iniciar contadores
-        // ═══════════════════════════════════════════════════════════════════════
-        var startTime = DateTime.UtcNow; // ← ADICIONADO
-        _metrics.RecordVideoProcessingStarted(); // ← ADICIONADO
+        var startTime = DateTime.UtcNow;
+        _metrics.RecordVideoProcessingStarted();
 
         try
         {
-            // ═══════════════════════════════════════════════════════════════════
-            // ETAPA 1: BUSCAR VÍDEO E VERIFICAR IDEMPOTÊNCIA
-            // ═══════════════════════════════════════════════════════════════════
             var video = await _unitOfWork.Videos.GetByIdAsync(message.VideoId, context.CancellationToken);
 
             if (video is null)
@@ -72,14 +61,12 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     messageId,
                     message.VideoId);
 
-                // ← ADICIONADO: Decrementar métrica se vídeo não existe
                 var duration = (DateTime.UtcNow - startTime).TotalSeconds;
                 _metrics.RecordVideoProcessingFailed(duration);
 
-                return; // Ack da mensagem (não vai reprocessar)
+                return;
             }
 
-            // IDEMPOTÊNCIA: Verificar se já foi processado com sucesso
             if (video.Status == VideoStatus.Completed)
             {
                 _logger.LogInformation(
@@ -87,14 +74,12 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     messageId,
                     message.VideoId);
 
-                // ← ADICIONADO: Decrementar métrica (já processado)
                 var duration = (DateTime.UtcNow - startTime).TotalSeconds;
                 _metrics.RecordVideoProcessingFailed(duration);
 
-                return; // Ack (idempotente - não reprocessa)
+                return;
             }
 
-            // IDEMPOTÊNCIA: Verificar se já está sendo processado por outro worker
             if (video.Status == VideoStatus.Processing)
             {
                 _logger.LogWarning(
@@ -102,22 +87,15 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     messageId,
                     message.VideoId);
 
-                // ← ADICIONADO: Decrementar métrica (duplicado)
                 var duration = (DateTime.UtcNow - startTime).TotalSeconds;
                 _metrics.RecordVideoProcessingFailed(duration);
 
-                return; // Ack (idempotente - evita duplicação)
+                return;
             }
 
-            // ═══════════════════════════════════════════════════════════════════
-            // ETAPA 2: BUSCAR USUÁRIO
-            // ═══════════════════════════════════════════════════════════════════
             var user = await _unitOfWork.Users.GetByIdAsync(video.UserId, context.CancellationToken);
             var userName = user?.Name ?? "Usuário desconhecido";
 
-            // ═══════════════════════════════════════════════════════════════════
-            // ETAPA 3: LOCK OTIMISTA - Marcar como processando ANTES de processar
-            // ═══════════════════════════════════════════════════════════════════
             video.StartProcessing();
             await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
@@ -126,9 +104,6 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                 messageId,
                 message.VideoId);
 
-            // ═══════════════════════════════════════════════════════════════════
-            // ETAPA 4: PREPARAR DIRETÓRIO TEMPORÁRIO
-            // ═══════════════════════════════════════════════════════════════════
             var tempDirectory = _storageService.GetTempDirectory();
             var videoOutputDirectory = Path.Combine(tempDirectory, message.VideoId.ToString());
             Directory.CreateDirectory(videoOutputDirectory);
@@ -138,11 +113,8 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                 messageId,
                 videoOutputDirectory);
 
-            // ═══════════════════════════════════════════════════════════════════
-            // ETAPA 5: PROCESSAR VÍDEO COM TIMEOUT DE 10 MINUTOS
-            // ═══════════════════════════════════════════════════════════════════
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken);
-            cts.CancelAfter(TimeSpan.FromMinutes(10)); // Timeout de 10 minutos
+            cts.CancelAfter(TimeSpan.FromMinutes(10));
 
             VideoProcessingResult result;
             try
@@ -160,7 +132,6 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
             }
             catch (OperationCanceledException) when (cts.IsCancellationRequested && !context.CancellationToken.IsCancellationRequested)
             {
-                // Timeout de 10 minutos foi atingido
                 _logger.LogError(
                     "[{MessageId}] ⏱️ Timeout no processamento do vídeo {VideoId} (>10 minutos)",
                     messageId,
@@ -176,21 +147,14 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     "Timeout: processamento excedeu 10 minutos",
                     context.CancellationToken);
 
-                // ← ADICIONADO: Registrar timeout nas métricas
                 var duration = (DateTime.UtcNow - startTime).TotalSeconds;
                 _metrics.RecordVideoProcessingFailed(duration);
 
-                throw; // Re-throw para que MassTransit faça retry
+                throw;
             }
 
-            // ═══════════════════════════════════════════════════════════════════
-            // ETAPA 6: PROCESSAR RESULTADO
-            // ═══════════════════════════════════════════════════════════════════
             if (result.Success)
             {
-                // ───────────────────────────────────────────────────────────────
-                // SUCESSO: Salvar ZIP e atualizar status
-                // ───────────────────────────────────────────────────────────────
                 _logger.LogInformation(
                     "[{MessageId}] 💾 Salvando ZIP do vídeo {VideoId}...",
                     messageId,
@@ -209,12 +173,9 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
 
                 await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
-                // ═══════════════════════════════════════════════════════════════
-                // MÉTRICAS: Registrar sucesso
-                // ═══════════════════════════════════════════════════════════════
                 _metrics.RecordVideoProcessingSuccess(
                     result.ProcessingDuration.TotalSeconds,
-                    result.FrameCount); // ← ADICIONADO
+                    result.FrameCount);
 
                 _logger.LogInformation(
                     "[{MessageId}] ✅ Vídeo {VideoId} processado com sucesso: {FrameCount} frames em {Duration:F2}s",
@@ -223,7 +184,6 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     result.FrameCount,
                     result.ProcessingDuration.TotalSeconds);
 
-                // Notificar sucesso via Telegram
                 await _telegramNotificationService.NotifyVideoProcessingSuccessAsync(
                     video.Id,
                     video.OriginalFileName,
@@ -232,7 +192,6 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     result.ProcessingDuration,
                     context.CancellationToken);
 
-                // Publicar evento de conclusão
                 await _messagePublisher.PublishAsync(new VideoProcessedEvent
                 {
                     VideoId = video.Id,
@@ -246,17 +205,11 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
             }
             else
             {
-                // ───────────────────────────────────────────────────────────────
-                // FALHA: Marcar como falha e notificar
-                // ───────────────────────────────────────────────────────────────
                 video.FailProcessing(result.ErrorMessage ?? "Erro desconhecido");
                 await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
-                // ═══════════════════════════════════════════════════════════════
-                // MÉTRICAS: Registrar falha
-                // ═══════════════════════════════════════════════════════════════
                 _metrics.RecordVideoProcessingFailed(
-                    result.ProcessingDuration.TotalSeconds); // ← ADICIONADO
+                    result.ProcessingDuration.TotalSeconds);
 
                 _logger.LogError(
                     "[{MessageId}] ❌ Falha ao processar vídeo {VideoId}: {Error}",
@@ -271,7 +224,6 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     result.ErrorMessage ?? "Erro desconhecido",
                     context.CancellationToken);
 
-                // Publicar evento de falha
                 await _messagePublisher.PublishAsync(new VideoProcessedEvent
                 {
                     VideoId = video.Id,
@@ -283,9 +235,6 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                 }, context.CancellationToken);
             }
 
-            // ═══════════════════════════════════════════════════════════════════
-            // ETAPA 7: LIMPAR DIRETÓRIO TEMPORÁRIO
-            // ═══════════════════════════════════════════════════════════════════
             if (Directory.Exists(videoOutputDirectory))
             {
                 Directory.Delete(videoOutputDirectory, recursive: true);
@@ -302,22 +251,15 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
         }
         catch (Exception ex)
         {
-            // ═══════════════════════════════════════════════════════════════════
-            // TRATAMENTO DE ERRO CRÍTICO
-            // ═══════════════════════════════════════════════════════════════════
             _logger.LogError(
                 ex,
                 "[{MessageId}] 💥 Erro crítico ao processar vídeo {VideoId}",
                 messageId,
                 message.VideoId);
 
-            // ═══════════════════════════════════════════════════════════════════
-            // MÉTRICAS: Registrar erro crítico
-            // ═══════════════════════════════════════════════════════════════════
-            var duration = (DateTime.UtcNow - startTime).TotalSeconds; // ← ADICIONADO
-            _metrics.RecordVideoProcessingFailed(duration); // ← ADICIONADO
+            var duration = (DateTime.UtcNow - startTime).TotalSeconds;
+            _metrics.RecordVideoProcessingFailed(duration);
 
-            // Tentar marcar como falha no banco
             try
             {
                 var video = await _unitOfWork.Videos.GetByIdAsync(message.VideoId, context.CancellationToken);
@@ -346,7 +288,6 @@ public class VideoUploadedEventConsumer : IConsumer<VideoUploadedEvent>
                     message.VideoId);
             }
 
-            // Re-throw para que MassTransit faça retry → DLQ após 3 falhas
             throw;
         }
     }

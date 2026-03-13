@@ -2,9 +2,6 @@ using FiapX.Domain.Enums;
 
 namespace FiapX.Domain.Entities;
 
-/// <summary>
-/// Entidade de vídeo do sistema
-/// </summary>
 public class Video : BaseEntity
 {
     public Guid UserId { get; private set; }
@@ -129,7 +126,6 @@ public class Video : BaseEntity
         if (fileSize <= 0)
             throw new ArgumentException("File size must be greater than zero", nameof(fileSize));
 
-        // 2GB limit
         const long maxSize = 2L * 1024 * 1024 * 1024;
         if (fileSize > maxSize)
             throw new ArgumentException($"File size exceeds maximum of 2GB", nameof(fileSize));

@@ -1,8 +1,5 @@
 ﻿namespace FiapX.Application.DTOs;
 
-/// <summary>
-/// DTO para download do ZIP
-/// </summary>
 public record VideoDownloadResponse
 {
     public Stream FileStream { get; init; } = Stream.Null;

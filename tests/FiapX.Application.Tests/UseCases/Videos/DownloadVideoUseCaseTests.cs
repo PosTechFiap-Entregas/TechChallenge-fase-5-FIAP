@@ -28,7 +28,6 @@ public class DownloadVideoUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithValidCompletedVideo_ShouldReturnDownloadResponse()
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var video = new Video(userId, "video.mp4", "/storage/video.mp4", 1024);
@@ -55,10 +54,8 @@ public class DownloadVideoUseCaseTests
             .Setup(x => x.GetFileSizeAsync("/storage/frames.zip", It.IsAny<CancellationToken>()))
             .ReturnsAsync(fileSize);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, userId);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.FileStream.Should().NotBeNull();
@@ -69,7 +66,6 @@ public class DownloadVideoUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithNonExistentVideo_ShouldReturnFailure()
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var userId = Guid.NewGuid();
 
@@ -77,10 +73,8 @@ public class DownloadVideoUseCaseTests
             .Setup(x => x.GetByIdWithUserAsync(videoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Video?)null);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, userId);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Vídeo não encontrado.");
     }
@@ -88,10 +82,9 @@ public class DownloadVideoUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithDifferentUserId_ShouldReturnAccessDenied()
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var ownerId = Guid.NewGuid();
-        var requesterId = Guid.NewGuid(); // Diferente do dono
+        var requesterId = Guid.NewGuid();
 
         var video = new Video(ownerId, "video.mp4", "/storage/video.mp4", 1024);
         video.MarkAsQueued();
@@ -102,10 +95,8 @@ public class DownloadVideoUseCaseTests
             .Setup(x => x.GetByIdWithUserAsync(videoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(video);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, requesterId);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Acesso negado.");
     }
@@ -113,20 +104,16 @@ public class DownloadVideoUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithUnprocessedVideo_ShouldReturnFailure()
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var video = new Video(userId, "video.mp4", "/storage/video.mp4", 1024);
-        // Status: Uploaded (não processado)
 
         _videoRepositoryMock
             .Setup(x => x.GetByIdWithUserAsync(videoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(video);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, userId);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Vídeo ainda não foi processado ou falhou no processamento.");
     }
@@ -134,7 +121,6 @@ public class DownloadVideoUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithFailedVideo_ShouldReturnFailure()
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var video = new Video(userId, "video.mp4", "/storage/video.mp4", 1024);
@@ -146,10 +132,8 @@ public class DownloadVideoUseCaseTests
             .Setup(x => x.GetByIdWithUserAsync(videoId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(video);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, userId);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Vídeo ainda não foi processado ou falhou no processamento.");
     }
@@ -157,7 +141,6 @@ public class DownloadVideoUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WhenZipFileNotExists_ShouldReturnFailure()
     {
-        // Arrange
         var videoId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var video = new Video(userId, "video.mp4", "/storage/video.mp4", 1024);
@@ -173,10 +156,8 @@ public class DownloadVideoUseCaseTests
             .Setup(x => x.FileExistsAsync("/storage/frames.zip", It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        // Act
         var result = await _sut.ExecuteAsync(videoId, userId);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Arquivo ZIP não encontrado no storage.");
     }

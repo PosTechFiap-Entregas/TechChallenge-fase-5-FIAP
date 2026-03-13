@@ -1065,6 +1065,7 @@ Use case: Vídeos maiores, FFmpeg mais rápido
 **Desenvolvimento:** Wesley Ferreira da Silva  
 **Documentação:** Raíssa Soares Cesar  
 **Infraestrutura:** Jaci Teixeira Santos  
+**Banco de dados:** Leandro Pradal Lopes  
 **Instituição:** FIAP - Faculdade de Informática e Administração Paulista  
 **Curso:** Pós-Graduação em Arquitetura de Software  
 **Fase:** 5 - TechChallenge Final  

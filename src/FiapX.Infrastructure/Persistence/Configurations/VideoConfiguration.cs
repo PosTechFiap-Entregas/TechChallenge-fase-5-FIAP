@@ -5,23 +5,17 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FiapX.Infrastructure.Persistence.Configurations;
 
-/// <summary>
-/// Configuração EF Core para a entidade Video
-/// </summary>
 public class VideoConfiguration : IEntityTypeConfiguration<Video>
 {
     public void Configure(EntityTypeBuilder<Video> builder)
     {
-        // Tabela
         builder.ToTable("Videos");
 
-        // Chave primária
         builder.HasKey(v => v.Id);
 
-        // Propriedades
         builder.Property(v => v.Id)
             .IsRequired()
-            .ValueGeneratedNever(); // Guid gerado pela aplicação
+            .ValueGeneratedNever();
 
         builder.Property(v => v.UserId)
             .IsRequired();
@@ -39,7 +33,7 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
 
         builder.Property(v => v.Status)
             .IsRequired()
-            .HasConversion<int>() // Armazena como int no banco
+            .HasConversion<int>()
             .HasDefaultValue(VideoStatus.Uploaded);
 
         builder.Property(v => v.UploadedAt)
@@ -68,7 +62,6 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
         builder.Property(v => v.UpdatedAt)
             .IsRequired(false);
 
-        // Índices
         builder.HasIndex(v => v.UserId)
             .HasDatabaseName("IX_Videos_UserId");
 
@@ -81,11 +74,9 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
         builder.HasIndex(v => v.ProcessedAt)
             .HasDatabaseName("IX_Videos_ProcessedAt");
 
-        // Índice composto para queries comuns
         builder.HasIndex(v => new { v.UserId, v.Status })
             .HasDatabaseName("IX_Videos_UserId_Status");
 
-        // Relacionamentos
         builder.HasOne(v => v.User)
             .WithMany(u => u.Videos)
             .HasForeignKey(v => v.UserId)

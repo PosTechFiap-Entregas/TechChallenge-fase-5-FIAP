@@ -3,9 +3,6 @@ using System.Text.Json;
 
 namespace FiapX.Infrastructure.Cache;
 
-/// <summary>
-/// Implementação do cache usando Redis
-/// </summary>
 public class RedisCacheService : ICacheService
 {
     private readonly IConnectionMultiplexer _redis;

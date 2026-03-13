@@ -8,11 +8,6 @@ using Xabe.FFmpeg.Downloader;
 
 namespace FiapX.Infrastructure.Services;
 
-/// <summary>
-/// Implementação do serviço de processamento de vídeo usando Xabe.FFmpeg.
-/// Extrai frames do vídeo e compacta em arquivo ZIP.
-/// Baixa FFmpeg automaticamente se necessário.
-/// </summary>
 public class FFmpegVideoProcessingService : IVideoProcessingService
 {
     private readonly ILogger<FFmpegVideoProcessingService> _logger;
@@ -34,12 +29,10 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
 
         try
         {
-            // Garantir que FFmpeg está disponível
             await EnsureFFmpegAsync();
 
             _logger.LogInformation("Iniciando processamento do vídeo: {VideoPath}", videoPath);
 
-            // Validações
             if (!File.Exists(videoPath))
             {
                 return new VideoProcessingResult
@@ -49,11 +42,9 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
                 };
             }
 
-            // Criar diretório de frames temporário
             var framesDirectory = Path.Combine(outputDirectory, "frames");
             Directory.CreateDirectory(framesDirectory);
 
-            // Extrair frames usando Xabe.FFmpeg
             var frameCount = await ExtractFramesAsync(videoPath, framesDirectory, fps, cancellationToken);
 
             if (frameCount == 0)
@@ -67,7 +58,6 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
 
             _logger.LogInformation("{FrameCount} frames extraídos com sucesso", frameCount);
 
-            // Criar arquivo ZIP com os frames
             var zipFileName = string.Format(VideoConstants.ZipFilePattern, DateTime.UtcNow);
             var zipPath = Path.Combine(outputDirectory, zipFileName);
 
@@ -75,7 +65,6 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
 
             _logger.LogInformation("ZIP criado com sucesso: {ZipPath}", zipPath);
 
-            // Limpar diretório de frames temporário
             Directory.Delete(framesDirectory, recursive: true);
 
             stopwatch.Stop();
@@ -114,9 +103,6 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
         }
     }
 
-    /// <summary>
-    /// Garante que o FFmpeg está disponível, baixando se necessário
-    /// </summary>
     private async Task EnsureFFmpegAsync()
     {
         if (_ffmpegDownloaded)
@@ -128,13 +114,11 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
             if (_ffmpegDownloaded)
                 return;
 
-            // Definir diretório onde FFmpeg será baixado
             var ffmpegPath = Path.Combine(Path.GetTempPath(), "ffmpeg");
             Directory.CreateDirectory(ffmpegPath);
 
             _logger.LogInformation("Verificando FFmpeg em: {Path}", ffmpegPath);
 
-            // Verificar se já existe
             var ffmpegExecutable = Path.Combine(ffmpegPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
 
             if (!File.Exists(ffmpegExecutable))
@@ -150,7 +134,6 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
                 _logger.LogInformation("FFmpeg já está disponível");
             }
 
-            // Configurar Xabe.FFmpeg para usar esse diretório
             FFmpeg.SetExecutablesPath(ffmpegPath);
 
             _ffmpegDownloaded = true;
@@ -161,9 +144,6 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
         }
     }
 
-    /// <summary>
-    /// Extrai frames do vídeo usando Xabe.FFmpeg
-    /// </summary>
     private async Task<int> ExtractFramesAsync(
         string videoPath,
         string outputDirectory,
@@ -180,7 +160,6 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
 
             var framePattern = Path.Combine(outputDirectory, "frame_%04d.png");
 
-            // Configurar conversão para extrair frames
             var conversion = FFmpeg.Conversions.New()
                 .AddStream(videoStream)
                 .SetFrameRate(fps)
@@ -188,7 +167,6 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
 
             await conversion.Start(cancellationToken);
 
-            // Contar frames extraídos
             var frameFiles = Directory.GetFiles(outputDirectory, "*.png");
             return frameFiles.Length;
         }
@@ -199,9 +177,6 @@ public class FFmpegVideoProcessingService : IVideoProcessingService
         }
     }
 
-    /// <summary>
-    /// Cria arquivo ZIP a partir dos frames extraídos
-    /// </summary>
     private async Task CreateZipFromFramesAsync(
         string framesDirectory,
         string zipPath,

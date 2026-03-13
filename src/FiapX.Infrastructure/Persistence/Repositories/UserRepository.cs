@@ -5,9 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FiapX.Infrastructure.Persistence.Repositories;
 
-/// <summary>
-/// Implementação do repositório de usuários
-/// </summary>
 public class UserRepository : Repository<User>, IUserRepository
 {
     public UserRepository(AppDbContext context) : base(context)

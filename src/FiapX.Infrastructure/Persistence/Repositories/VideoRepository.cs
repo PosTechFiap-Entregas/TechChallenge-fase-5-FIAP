@@ -6,9 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FiapX.Infrastructure.Persistence.Repositories;
 
-/// <summary>
-/// Implementação do repositório de vídeos
-/// </summary>
 public class VideoRepository : Repository<Video>, IVideoRepository
 {
     public VideoRepository(AppDbContext context) : base(context)

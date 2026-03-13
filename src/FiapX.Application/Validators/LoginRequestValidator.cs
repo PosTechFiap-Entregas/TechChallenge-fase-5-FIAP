@@ -3,9 +3,6 @@ using FluentValidation;
 
 namespace FiapX.Application.Validators;
 
-/// <summary>
-/// Validador para login
-/// </summary>
 public class LoginRequestValidator : AbstractValidator<LoginRequest>
 {
     public LoginRequestValidator()

@@ -4,9 +4,6 @@ using FluentValidation;
 
 namespace FiapX.Application.Validators;
 
-/// <summary>
-/// Validador para registro de usuário
-/// </summary>
 public class RegisterUserRequestValidator : AbstractValidator<RegisterUserRequest>
 {
     public RegisterUserRequestValidator()

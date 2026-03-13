@@ -7,9 +7,6 @@ using FiapX.Shared.Security;
 
 namespace FiapX.Application.UseCases.Auth;
 
-/// <summary>
-/// Use Case para login de usuário
-/// </summary>
 public class LoginUseCase : ILoginUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -27,24 +24,20 @@ public class LoginUseCase : ILoginUseCase
         LoginRequest request,
         CancellationToken cancellationToken = default)
     {
-        // Buscar usuário pelo email
         var user = await _unitOfWork.Users
             .GetByEmailAsync(request.Email, cancellationToken);
 
         if (user is null)
             return Result.Failure<AuthResponse>("Email ou senha inválidos.");
 
-        // Verificar se o usuário está ativo
         if (!user.IsActive)
             return Result.Failure<AuthResponse>("Conta desativada.");
 
-        // Verificar senha
         var passwordValid = PasswordHasher.VerifyPassword(request.Password, user.PasswordHash);
 
         if (!passwordValid)
             return Result.Failure<AuthResponse>("Email ou senha inválidos.");
 
-        // Gerar token
         var token = _jwtService.GenerateToken(user);
 
         var response = new AuthResponse

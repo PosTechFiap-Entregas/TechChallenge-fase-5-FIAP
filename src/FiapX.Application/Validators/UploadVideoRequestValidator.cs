@@ -4,9 +4,6 @@ using FluentValidation;
 
 namespace FiapX.Application.Validators;
 
-/// <summary>
-/// Validador para upload de vídeo
-/// </summary>
 public class UploadVideoRequestValidator : AbstractValidator<UploadVideoRequest>
 {
     public UploadVideoRequestValidator()

@@ -1,11 +1,8 @@
 namespace FiapX.Shared.Constants;
 
-/// <summary>
-/// Constantes relacionadas a vídeos
-/// </summary>
 public static class VideoConstants
 {
-    public const long MaxFileSizeBytes = 2L * 1024 * 1024 * 1024; // 2GB
+    public const long MaxFileSizeBytes = 2L * 1024 * 1024 * 1024;
     public const int MaxFileSizeMB = 2048;
 
     public static readonly string[] AllowedExtensions = 
@@ -24,14 +21,11 @@ public static class VideoConstants
         "video/webm"
     };
 
-    public const int DefaultFps = 1; // 1 frame por segundo
+    public const int DefaultFps = 1;
     public const string FrameFilePattern = "frame_{0:D4}.png";
     public const string ZipFilePattern = "frames_{0:yyyyMMdd_HHmmss}.zip";
 }
 
-/// <summary>
-/// Constantes de autenticação e autorização
-/// </summary>
 public static class AuthConstants
 {
     public const int MinPasswordLength = 6;
@@ -41,9 +35,6 @@ public static class AuthConstants
     public const int TokenExpirationMinutes = 60;
 }
 
-/// <summary>
-/// Constantes de mensagens
-/// </summary>
 public static class MessageConstants
 {
     public const string VideoUploadedQueue = "video-processing-queue";
@@ -51,9 +42,6 @@ public static class MessageConstants
     public const string VideoUploadedExchange = "video-processing-exchange";
 }
 
-/// <summary>
-/// Constantes de cache
-/// </summary>
 public static class CacheConstants
 {
     public const string VideoStatusKeyPattern = "video:status:{0}";

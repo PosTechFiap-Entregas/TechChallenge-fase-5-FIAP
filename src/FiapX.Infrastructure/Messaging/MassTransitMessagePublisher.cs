@@ -3,10 +3,6 @@ using MassTransit;
 
 namespace FiapX.Infrastructure.Messaging;
 
-/// <summary>
-/// Implementação do IMessagePublisher usando MassTransit/RabbitMQ.
-/// Application não conhece MassTransit — só conhece a interface IMessagePublisher do Domain.
-/// </summary>
 public class MassTransitMessagePublisher : IMessagePublisher
 {
     private readonly IBus _bus;

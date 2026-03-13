@@ -5,9 +5,6 @@ using FiapX.Shared.Results;
 
 namespace FiapX.Application.UseCases.Videos;
 
-/// <summary>
-/// Use Case para consultar status de um vídeo específico
-/// </summary>
 public class GetVideoStatusUseCase : IGetVideoStatusUseCase
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -22,14 +19,12 @@ public class GetVideoStatusUseCase : IGetVideoStatusUseCase
         Guid userId,
         CancellationToken cancellationToken = default)
     {
-        // Buscar vídeo com usuário (para validar ownership)
         var video = await _unitOfWork.Videos
             .GetByIdWithUserAsync(videoId, cancellationToken);
 
         if (video is null)
             return Result.Failure<VideoStatusResponse>("Vídeo não encontrado.");
 
-        // Garantir que o vídeo pertence ao usuário autenticado
         if (video.UserId != userId)
             return Result.Failure<VideoStatusResponse>("Acesso negado.");
 

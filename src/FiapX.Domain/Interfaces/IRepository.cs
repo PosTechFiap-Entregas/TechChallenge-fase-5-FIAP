@@ -2,9 +2,6 @@ using FiapX.Domain.Entities;
 
 namespace FiapX.Domain.Interfaces;
 
-/// <summary>
-/// Interface base para repositórios
-/// </summary>
 public interface IRepository<T> where T : BaseEntity
 {
     Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

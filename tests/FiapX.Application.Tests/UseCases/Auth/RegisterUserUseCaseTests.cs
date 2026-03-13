@@ -29,7 +29,6 @@ public class RegisterUserUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithValidData_ShouldCreateUserAndReturnToken()
     {
-        // Arrange
         var request = new RegisterUserRequest
         {
             Email = "newuser@test.com",
@@ -60,10 +59,8 @@ public class RegisterUserUseCaseTests
             .Setup(x => x.GetTokenExpiration())
             .Returns(expectedExpiration);
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value.Email.Should().Be(request.Email);
@@ -95,7 +92,6 @@ public class RegisterUserUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithExistingEmail_ShouldReturnFailure()
     {
-        // Arrange
         var request = new RegisterUserRequest
         {
             Email = "existing@test.com",
@@ -107,10 +103,8 @@ public class RegisterUserUseCaseTests
             .Setup(x => x.EmailExistsAsync(request.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Email já está sendo utilizado.");
 
@@ -130,7 +124,6 @@ public class RegisterUserUseCaseTests
     [Fact]
     public async Task ExecuteAsync_ShouldHashPassword()
     {
-        // Arrange
         var request = new RegisterUserRequest
         {
             Email = "user@test.com",
@@ -161,20 +154,17 @@ public class RegisterUserUseCaseTests
             .Setup(x => x.GetTokenExpiration())
             .Returns(DateTime.UtcNow.AddHours(1));
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         capturedUser.Should().NotBeNull();
         capturedUser!.PasswordHash.Should().NotBe(request.Password);
-        capturedUser.PasswordHash.Should().StartWith("$2"); // BCrypt hash prefix
+        capturedUser.PasswordHash.Should().StartWith("$2");
     }
 
     [Fact]
     public async Task ExecuteAsync_ShouldCreateActiveUser()
     {
-        // Arrange
         var request = new RegisterUserRequest
         {
             Email = "user@test.com",
@@ -205,10 +195,8 @@ public class RegisterUserUseCaseTests
             .Setup(x => x.GetTokenExpiration())
             .Returns(DateTime.UtcNow.AddHours(1));
 
-        // Act
         await _sut.ExecuteAsync(request);
 
-        // Assert
         capturedUser.Should().NotBeNull();
         capturedUser!.IsActive.Should().BeTrue();
     }
@@ -221,7 +209,6 @@ public class RegisterUserUseCaseTests
     public async Task ExecuteAsync_WithVariousValidInputs_ShouldSucceed(
         string email, string password, string name)
     {
-        // Arrange
         var request = new RegisterUserRequest
         {
             Email = email,
@@ -249,17 +236,14 @@ public class RegisterUserUseCaseTests
             .Setup(x => x.GetTokenExpiration())
             .Returns(DateTime.UtcNow.AddHours(1));
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
     public async Task ExecuteAsync_WhenDatabaseFails_ShouldThrowException()
     {
-        // Arrange
         var request = new RegisterUserRequest
         {
             Email = "user@test.com",
@@ -279,7 +263,6 @@ public class RegisterUserUseCaseTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
-        // Act & Assert
         await Assert.ThrowsAsync<Exception>(
             async () => await _sut.ExecuteAsync(request));
 

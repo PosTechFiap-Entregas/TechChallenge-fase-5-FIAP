@@ -1,14 +1,9 @@
 ﻿using FiapX.Worker.Consumers;
 using FiapX.Worker.Services;
 using MassTransit;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace FiapX.Worker.Extensions;
 
-/// <summary>
-/// Extensões de DI para o Worker com configurações de resiliência
-/// </summary>
 public static class WorkerServiceExtensions
 {
     public static IServiceCollection AddWorkerServices(
@@ -77,9 +72,6 @@ public static class WorkerServiceExtensions
     }
 }
 
-/// <summary>
-/// Configuração avançada do Consumer com retry policy específico
-/// </summary>
 public class VideoUploadedEventConsumerDefinition : ConsumerDefinition<VideoUploadedEventConsumer>
 {
     public VideoUploadedEventConsumerDefinition()

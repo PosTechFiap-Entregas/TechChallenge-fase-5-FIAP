@@ -14,7 +14,7 @@ public class LoginUseCaseTests
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IJwtTokenService> _jwtServiceMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly LoginUseCase _sut; // System Under Test
+    private readonly LoginUseCase _sut;
 
     public LoginUseCaseTests()
     {
@@ -30,7 +30,6 @@ public class LoginUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithValidCredentials_ShouldReturnSuccessWithToken()
     {
-        // Arrange
         var email = "user@test.com";
         var password = "Password123!";
         var passwordHash = PasswordHasher.HashPassword(password);
@@ -58,10 +57,8 @@ public class LoginUseCaseTests
             .Setup(x => x.GetTokenExpiration())
             .Returns(expectedExpiration);
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value.UserId.Should().Be(user.Id);
@@ -82,7 +79,6 @@ public class LoginUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithNonExistentEmail_ShouldReturnFailure()
     {
-        // Arrange
         var request = new LoginRequest
         {
             Email = "nonexistent@test.com",
@@ -93,10 +89,8 @@ public class LoginUseCaseTests
             .Setup(x => x.GetByEmailAsync(request.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Email ou senha inválidos.");
 
@@ -108,7 +102,6 @@ public class LoginUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithInvalidPassword_ShouldReturnFailure()
     {
-        // Arrange
         var email = "user@test.com";
         var correctPassword = "CorrectPassword123!";
         var wrongPassword = "WrongPassword123!";
@@ -126,10 +119,8 @@ public class LoginUseCaseTests
             .Setup(x => x.GetByEmailAsync(email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Email ou senha inválidos.");
 
@@ -141,13 +132,12 @@ public class LoginUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WithInactiveUser_ShouldReturnFailure()
     {
-        // Arrange
         var email = "user@test.com";
         var password = "Password123!";
         var passwordHash = PasswordHasher.HashPassword(password);
 
         var user = new User(email, passwordHash, "Test User");
-        user.Deactivate(); // Desativar usuário
+        user.Deactivate();
 
         var request = new LoginRequest
         {
@@ -159,10 +149,8 @@ public class LoginUseCaseTests
             .Setup(x => x.GetByEmailAsync(email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Conta desativada.");
 
@@ -177,7 +165,6 @@ public class LoginUseCaseTests
     [InlineData(null)]
     public async Task ExecuteAsync_WithEmptyEmail_ShouldHandleGracefully(string email)
     {
-        // Arrange
         var request = new LoginRequest
         {
             Email = email,
@@ -188,10 +175,8 @@ public class LoginUseCaseTests
             .Setup(x => x.GetByEmailAsync(email, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
-        // Act
         var result = await _sut.ExecuteAsync(request);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("Email ou senha inválidos.");
     }
@@ -199,7 +184,6 @@ public class LoginUseCaseTests
     [Fact]
     public async Task ExecuteAsync_WhenCancelled_ShouldRespectCancellationToken()
     {
-        // Arrange
         var request = new LoginRequest
         {
             Email = "user@test.com",
@@ -213,7 +197,6 @@ public class LoginUseCaseTests
             .Setup(x => x.GetByEmailAsync(request.Email, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
-        // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await _sut.ExecuteAsync(request, cts.Token));
     }

@@ -5,9 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FiapX.Infrastructure.Persistence.Repositories;
 
-/// <summary>
-/// Implementacao base do repositorio generico
-/// </summary>
 public class Repository<T> : IRepository<T> where T : BaseEntity
 {
     protected readonly AppDbContext _context;

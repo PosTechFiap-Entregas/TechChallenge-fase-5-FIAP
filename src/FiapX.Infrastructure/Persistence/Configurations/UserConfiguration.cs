@@ -4,23 +4,17 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FiapX.Infrastructure.Persistence.Configurations;
 
-/// <summary>
-/// Configuração EF Core para a entidade User
-/// </summary>
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        // Tabela
         builder.ToTable("Users");
 
-        // Chave primária
         builder.HasKey(u => u.Id);
 
-        // Propriedades
         builder.Property(u => u.Id)
             .IsRequired()
-            .ValueGeneratedNever(); // Guid gerado pela aplicação
+            .ValueGeneratedNever();
 
         builder.Property(u => u.Email)
             .IsRequired()
@@ -44,7 +38,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.UpdatedAt)
             .IsRequired(false);
 
-        // Índices
         builder.HasIndex(u => u.Email)
             .IsUnique()
             .HasDatabaseName("IX_Users_Email");
@@ -55,10 +48,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.CreatedAt)
             .HasDatabaseName("IX_Users_CreatedAt");
 
-        // Relacionamentos
         builder.HasMany(u => u.Videos)
             .WithOne(v => v.User)
             .HasForeignKey(v => v.UserId)
-            .OnDelete(DeleteBehavior.Cascade); // Exceção: deletar usuário deleta seus vídeos
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

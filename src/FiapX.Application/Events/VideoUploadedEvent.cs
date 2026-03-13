@@ -1,9 +1,5 @@
 ﻿namespace FiapX.Application.Events;
 
-/// <summary>
-/// Evento publicado quando um vídeo é enviado com sucesso.
-/// Vive no Application porque é um contrato de comunicação entre use cases e workers.
-/// </summary>
 public record VideoUploadedEvent
 {
     public Guid VideoId { get; init; }

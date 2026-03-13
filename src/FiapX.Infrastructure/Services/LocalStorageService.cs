@@ -3,9 +3,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace FiapX.Infrastructure.Services;
 
-/// <summary>
-/// Implementação do serviço de armazenamento usando sistema de arquivos local
-/// </summary>
 public class LocalStorageService : IStorageService
 {
     private readonly string _storageBasePath;
@@ -17,7 +14,6 @@ public class LocalStorageService : IStorageService
     {
         var basePath = configuration["Storage:BasePath"] ?? "./storage";
 
-        // Converter para caminho absoluto
         _storageBasePath = Path.IsPathRooted(basePath)
             ? basePath
             : Path.GetFullPath(basePath);
@@ -98,7 +94,7 @@ public class LocalStorageService : IStorageService
             return Task.CompletedTask;
 
         var directories = Directory.GetDirectories(_tempPath);
-        var cutoffTime = DateTime.UtcNow.AddHours(-2); // Remove arquivos com mais de 2 horas
+        var cutoffTime = DateTime.UtcNow.AddHours(-2);
 
         foreach (var directory in directories)
         {
@@ -111,7 +107,7 @@ public class LocalStorageService : IStorageService
                 }
                 catch
                 {
-                    // Ignora erros de limpeza
+                    
                 }
             }
         }

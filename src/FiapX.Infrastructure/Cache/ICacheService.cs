@@ -1,8 +1,5 @@
 ﻿namespace FiapX.Infrastructure.Cache;
 
-/// <summary>
-/// Interface para serviço de cache
-/// </summary>
 public interface ICacheService
 {
     Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default);

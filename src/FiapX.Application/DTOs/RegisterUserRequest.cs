@@ -1,8 +1,5 @@
 ﻿namespace FiapX.Application.DTOs;
 
-/// <summary>
-/// DTO para registro de novo usuário
-/// </summary>
 public record RegisterUserRequest
 {
     public string Name { get; init; } = string.Empty;

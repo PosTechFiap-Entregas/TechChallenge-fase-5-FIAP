@@ -194,7 +194,7 @@ public class MigrationExtensionsTests
         var (app, capture) = BuildInvalidDbWithCapture();
         await using var _ = app;
 
-        try { await app.ApplyMigrationsAsync(); } catch { /* exceção relançada — esperada */ }
+        try { await app.ApplyMigrationsAsync(); } catch { }
 
         capture.Entries
             .Should().Contain(e =>
@@ -208,7 +208,7 @@ public class MigrationExtensionsTests
         var (app, capture) = BuildInvalidDbWithCapture();
         await using var _ = app;
 
-        try { await app.ApplyMigrationsAsync(); } catch { /* esperado */ }
+        try { await app.ApplyMigrationsAsync(); } catch {  }
 
         capture.Entries
             .Should().NotContain(e =>
