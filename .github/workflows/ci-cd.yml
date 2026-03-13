@@ -15,9 +15,6 @@ env:
   AWS_REGION: us-east-1
   ECS_CLUSTER: fiapx-cluster
   ECS_SERVICE: fiapx-api
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-  SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
 
 jobs:
   build-and-test:
@@ -44,12 +41,16 @@ jobs:
       run: dotnet restore TechChallenge-Fase5.slnx
 
     - name: 🔍 Iniciar análise Sonar
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
       run: |
         dotnet sonarscanner begin \
-          /k:"${{ env.SONAR_PROJECT_KEY }}" \
-          /o:"${{ env.SONAR_ORGANIZATION }}" \
+          /k:"$SONAR_PROJECT_KEY" \
+          /o:"$SONAR_ORGANIZATION" \
           /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.token="${{ env.SONAR_TOKEN }}" \
+          /d:sonar.token="$SONAR_TOKEN" \
           /d:sonar.cs.opencover.reportsPaths="**/coverage/coverage.opencover.xml"
 
     - name: 🏗️ Build do projeto
