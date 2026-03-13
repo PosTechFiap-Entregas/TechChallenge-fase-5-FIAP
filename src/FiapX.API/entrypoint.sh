@@ -1,12 +1,16 @@
 #!/bin/bash
 set -e
 
-echo "Aguardando PostgreSQL ficar disponivel..."
+# Extrai o host da connection string ou usa variável dedicada
+# Exemplo: "Host=localhost;Port=5432;..." → "localhost"
+DB_HOST=${DB_HOST:-$(echo "${ConnectionStrings__DefaultConnection}" | grep -oP '(?<=Host=)[^;]+')}
+DB_PORT=${DB_PORT:-5432}
 
-# Aguardar PostgreSQL ficar pronto (timeout de 30 segundos)
-timeout=30
+echo "Aguardando PostgreSQL em $DB_HOST:$DB_PORT..."
+
+timeout=60
 while [ $timeout -gt 0 ]; do
-  if timeout 2 bash -c "</dev/tcp/postgres/5432"; then
+  if timeout 2 bash -c "</dev/tcp/$DB_HOST/$DB_PORT" 2>/dev/null; then
     echo "PostgreSQL esta pronto!"
     break
   fi
